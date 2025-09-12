@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const userSchema = new mongoose.Schema(
   {
@@ -23,6 +24,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["user", "owner", "deliveryBoy"],
       default: "user",
+    },
+    resetOtp: {
+      type: String,
+      
+    },
+    isOtpVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otpExpiry: {
+      type: Date,
     },
   },
   { timestamps: true }

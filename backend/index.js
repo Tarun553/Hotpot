@@ -3,6 +3,8 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.route.js";
 
+import UserRouter from "./routes/user.route.js";
+import cookieParser from "cookie-parser";
 const app = express();
 
 connectDB();
@@ -16,8 +18,10 @@ app.use(
   })
 );
 // middlewares
+app.use(cookieParser());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/user", UserRouter)
 
 // health check route
 app.get("/", (req, res) => {

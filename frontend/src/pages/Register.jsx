@@ -13,9 +13,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FcGoogle } from "react-icons/fc"; // ✅ Google icon
 import axios from "axios";
 import { serverUrl } from "../App"; // Import the serverUrl
-
+import { auth, provider } from "../../firebase";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { ClipLoader } from "react-spinners";
+import { useNavigate } from "react-router";
+import toast from "react-hot-toast";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -47,15 +52,55 @@ const Register = () => {
     try {
       const result = await axios.post(`${serverUrl}/api/auth/register`, formData, { withCredentials: true });
       // You can handle success here (e.g., redirect, show success message)
+      if(result.data.success){
+       toast.success("Registered Successfully")
+        navigate("/login");
+      }
     } catch (err) {
       let msg = "Registration failed";
       if (err.response && err.response.data && err.response.data.message) {
         msg = err.response.data.message;
+        toast.error(msg)
       }
       setError(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSignUp = async () => {
+    if (!formData.mobile) {
+      return alert("Please enter mobile number");
+    }
+    signInWithPopup(auth, provider)
+      .then(async (result) => {
+        // This gives you a Google Access Token. You can use it to access the Google API.
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        // The signed-in user info.
+        const user = result.user;
+        try {
+          const response = await axios.post(`${serverUrl}/api/auth/google-auth`, {
+            fullName: user.displayName,
+            email: user.email,
+            mobile: formData.mobile,
+            role: formData.role,
+          });
+          console.log(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+      })
+      .catch((error) => {
+        // Handle Errors here.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // The email of the user's account used.
+        const email = error.customData.email;
+        // The AuthCredential type that was used.
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        console.error(error);
+      });
   };
 
   return (
@@ -155,7 +200,7 @@ const Register = () => {
               className="w-full bg-orange-600 hover:bg-orange-700 transition rounded-xl"
               disabled={loading}
             >
-              {loading ? "Registering..." : "Register"}
+              {loading ? <ClipLoader size={20} color="#fff" /> : "Register"}
             </Button>
           </form>
 
@@ -168,6 +213,7 @@ const Register = () => {
 
           {/* Google Signup */}
           <Button
+            onClick={handleGoogleSignUp}
             variant="outline"
             className="w-full flex items-center justify-center gap-2 border-gray-300"
           >

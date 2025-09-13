@@ -7,7 +7,8 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { serverUrl } from "../App"; // ✅ same serverUrl as login
 import { useNavigate } from "react-router-dom";
-
+import { ClipLoader } from "react-spinners";
+import toast from "react-hot-toast";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -54,9 +55,7 @@ const ForgotPassword = () => {
       );
       setStep(3);
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Invalid OTP. Please try again."
-      );
+      setError(err.response?.data?.message || "Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,12 +81,13 @@ const ForgotPassword = () => {
         { email, newPassword },
         { withCredentials: true }
       );
-      alert("Password reset successful! You can now login.");
+      toast.success("Password reset successful! You can now login.");
       // Optionally redirect to login page
       navigate("/login");
     } catch (err) {
       setError(
-        err.response?.data?.message || "Failed to reset password. Please try again."
+        err.response?.data?.message ||
+          "Failed to reset password. Please try again."
       );
     } finally {
       setLoading(false);
@@ -121,14 +121,16 @@ const ForgotPassword = () => {
                 />
               </div>
               {error && (
-                <div className="text-center text-red-600 text-sm font-medium py-1">{error}</div>
+                <div className="text-center text-red-600 text-sm font-medium py-1">
+                  {error}
+                </div>
               )}
               <Button
                 type="submit"
                 className="w-full bg-orange-600 hover:bg-orange-700 transition rounded-xl"
                 disabled={loading}
               >
-                {loading ? "Sending..." : "Send OTP"}
+                {loading ? <ClipLoader size={20} color="#fff" /> : "Send OTP"}
               </Button>
             </form>
           )}
@@ -147,14 +149,16 @@ const ForgotPassword = () => {
                 />
               </div>
               {error && (
-                <div className="text-center text-red-600 text-sm font-medium py-1">{error}</div>
+                <div className="text-center text-red-600 text-sm font-medium py-1">
+                  {error}
+                </div>
               )}
               <Button
                 type="submit"
                 className="w-full bg-orange-600 hover:bg-orange-700 transition rounded-xl"
                 disabled={loading}
               >
-                {loading ? "Verifying..." : "Verify OTP"}
+                {loading ? <ClipLoader size={20} color="#fff" /> : "Verify OTP"}
               </Button>
             </form>
           )}
@@ -185,14 +189,20 @@ const ForgotPassword = () => {
                 />
               </div>
               {error && (
-                <div className="text-center text-red-600 text-sm font-medium py-1">{error}</div>
+                <div className="text-center text-red-600 text-sm font-medium py-1">
+                  {error}
+                </div>
               )}
               <Button
                 type="submit"
                 className="w-full bg-orange-600 hover:bg-orange-700 transition rounded-xl"
                 disabled={loading}
               >
-                {loading ? "Resetting..." : "Reset Password"}
+                {loading ? (
+                  <ClipLoader size={20} color="#fff" />
+                ) : (
+                  "Reset Password"
+                )}
               </Button>
             </form>
           )}

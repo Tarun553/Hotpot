@@ -1,5 +1,5 @@
 import express from "express";
-import { signUp, signIn, sendOtp, verifyOtp, resetPassword} from "../controllers/auth.controller.js";
+import { signUp, signIn, sendOtp, verifyOtp, resetPassword, GoogleAuth} from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
@@ -14,5 +14,7 @@ router.post("/forgot-password", sendOtp);
 router.post("/verify-otp", verifyOtp);
 // Reset Password
 router.post("/reset-password", resetPassword);
+// Google OAuth route
+router.post("/google-auth", GoogleAuth);
 
 export default router;

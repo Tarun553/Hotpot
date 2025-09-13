@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import User  from "../models/user.model.js";
+import User from "../models/user.model.js";
 import { sendEmail } from "../utils/mail.js";
 
 export const signUp = async (req, res) => {
   try {
     const { fullName, email, password, role, mobile } = req.body;
-    console.log(fullName,email,password,role,mobile);
+    console.log(fullName, email, password, role, mobile);
     // check user input all the fields
     if (!fullName || !email || !password || !role || !mobile) {
       return res
@@ -49,7 +49,7 @@ export const signUp = async (req, res) => {
       message: "User created successfully",
       success: true,
       user: userObj,
-      token
+      token,
     });
   } catch (error) {
     return res
@@ -93,7 +93,7 @@ export const signIn = async (req, res) => {
       message: "User signed in successfully",
       success: true,
       user: userObj,
-      token
+      token,
     });
   } catch (error) {
     return res
@@ -101,7 +101,6 @@ export const signIn = async (req, res) => {
       .json({ message: "Internal server error", success: false });
   }
 };
-
 
 export const sendOtp = async (req, res) => {
   try {
@@ -136,8 +135,7 @@ export const sendOtp = async (req, res) => {
       .status(500)
       .json({ message: "Internal server error", success: false });
   }
-}
-
+};
 
 export const verifyOtp = async (req, res) => {
   try {
@@ -157,9 +155,7 @@ export const verifyOtp = async (req, res) => {
     }
     // check if OTP is valid
     if (user.resetOtp !== otp) {
-      return res
-        .status(400)
-        .json({ message: "Invalid OTP", success: false });
+      return res.status(400).json({ message: "Invalid OTP", success: false });
     }
     // check if OTP is expired
     if (Date.now() > user.otpExpiry) {
@@ -188,9 +184,10 @@ export const resetPassword = async (req, res) => {
     const { email, newPassword } = req.body;
     // check user input all the fields
     if (!email || !newPassword) {
-      return res
-        .status(400)
-        .json({ message: "Email and new password are required", success: false });
+      return res.status(400).json({
+        message: "Email and new password are required",
+        success: false,
+      });
     }
     // check if user exists
     const user = await User.findOne({ email });
@@ -217,5 +214,61 @@ export const resetPassword = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Internal server error", success: false });
+  }
+};
+
+export const GoogleAuth = async (req, res) => {
+  try {
+    const { fullName, email, role, mobile } = req.body;
+    // Validate required fields
+    if (!fullName || !email || !role || !mobile) {
+      return res.status(400).json({ message: "All fields are required", success: false });
+    }
+    let user = await User.findOne({ email });
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
+      // Remove password from user object
+      const userObj = user.toObject();
+      delete userObj.password;
+      return res
+        .status(200)
+        .json({ message: "Login successful", success: true, token, user: userObj });
+    }
+    // if user does not exist, create a new user
+    // Set a random password for Google users (not used for login)
+    const randomPassword = Math.random().toString(36).slice(-8);
+    user = new User({
+      fullName,
+      email,
+      role,
+      mobile,
+      password: await bcrypt.hash(randomPassword, 10),
+    });
+    await user.save();
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+    });
+    // Remove password from user object
+    const userObj = user.toObject();
+    delete userObj.password;
+    return res
+      .status(201)
+      .json({
+        message: "User created successfully",
+        success: true,
+        token,
+        user: userObj,
+      });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: error.message || "Internal server error google auth error", success: false });
   }
 };

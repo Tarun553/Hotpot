@@ -18,7 +18,8 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { ClipLoader } from "react-spinners";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
-
+import { useDispatch } from "react-redux";
+import { setUserData } from "../redux/userSlice";
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -30,6 +31,10 @@ const Register = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
+
+  // Handle input changes
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -51,6 +56,8 @@ const Register = () => {
     setLoading(true);
     try {
       const result = await axios.post(`${serverUrl}/api/auth/register`, formData, { withCredentials: true });
+         
+      dispatch(setUserData(result.data.user));
       // You can handle success here (e.g., redirect, show success message)
       if(result.data.success){
        toast.success("Registered Successfully")
@@ -86,7 +93,11 @@ const Register = () => {
             mobile: formData.mobile,
             role: formData.role,
           });
-          console.log(response.data);
+          dispatch(setUserData(response.data));
+          if (response.data.success) {
+            toast.success("Logged in successfully");
+            navigate("/");
+          }
         } catch (error) {
           console.error(error);
         }

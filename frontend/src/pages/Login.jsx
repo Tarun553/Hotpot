@@ -18,7 +18,11 @@ import { auth } from "../../firebase";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { ClipLoader } from "react-spinners";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setUserData } from "../redux/userSlice";
+
 const Login = () => {
+  const dispatch = useDispatch();
   const roles = ["user", "owner", "deliveryBoy"];
   const [formData, setFormData] = useState({
     email: "",
@@ -52,7 +56,8 @@ const Login = () => {
       const result = await axios.post(`${serverUrl}/api/auth/login`, formData, {
         withCredentials: true,
       });
-      console.log(result.data);
+     
+      dispatch(setUserData(result.data.user));
       if (result.data.success) {
         setFormData({ email: "", password: "", mobile: "", role: "user" });
         toast.success("User logged in successfully");

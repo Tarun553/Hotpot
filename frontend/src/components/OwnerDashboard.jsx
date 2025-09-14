@@ -1,10 +1,10 @@
 import React from 'react'
-import Navbar from './Navbar'
+import OwnerNavbar from './OwnerNav'
 
 const OwnerDashboard = () => {
   return (
     <div>
-      <Navbar />
+      <OwnerNavbar />
       <div className="mt-20 p-4">
         <h1 className="text-2xl font-bold mb-4">Owner Dashboard</h1>
         {/* Add more dashboard content here */}

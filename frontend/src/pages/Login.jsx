@@ -50,7 +50,6 @@ const Login = () => {
   // ✅ Fixed: closed properly
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
     setLoading(true);
     try {
       const result = await axios.post(`${serverUrl}/api/auth/login`, formData, {

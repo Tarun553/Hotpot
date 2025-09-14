@@ -459,3 +459,13 @@ export const GoogleAuth = async (req, res) => {
     return res.status(500).json({ message: error.message || "Internal server error google auth", success: false });
   }
 };
+
+// ---------- LOGOUT ----------
+export const logout = (req, res) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Logout successful", success: true });
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Internal server error", success: false });
+  }
+};

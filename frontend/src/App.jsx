@@ -11,6 +11,7 @@ import useGetMyShop from "./hooks/useGetMyShop";
 import CreateEditShop from "./pages/CreateEditShop";
 import EditItemOwner from "./pages/EditItemOwner";
 import AddFoodItem from "./pages/AddFoodItem";
+import useGetAllShops from "./hooks/useGetAllShops";
 // Access the server URL from environment variables
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
 
@@ -20,6 +21,7 @@ const App = () => {
   useGetCurrentUser();
   useGetCity();
   useGetMyShop();
+  useGetAllShops();
 
   return (
     <BrowserRouter>

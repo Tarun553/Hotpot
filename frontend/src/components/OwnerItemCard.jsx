@@ -6,8 +6,11 @@ import { FaPen, FaTrash } from "react-icons/fa";
 import { IndianRupee } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { setMyShopData } from "../redux/ownerSlice";
 const OwnerItemCard = ({ data }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const onEdit = (data) => {
     navigate(`/edit-item/${data._id}`);
@@ -25,7 +28,9 @@ const OwnerItemCard = ({ data }) => {
       );
       const result = await res.json();
       if (res.ok) {
-        window.location.reload(); // Or trigger a state update in parent
+        window.location.reload(); 
+        // Or trigger a state update in parent
+        dispatch(setMyShopData(result.shop));
       } else {
         alert(result.message || "Failed to delete item");
       }

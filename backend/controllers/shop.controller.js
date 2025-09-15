@@ -64,3 +64,16 @@ export const getShopByOwner = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+export const getAllShops = async (req, res) => {
+  try {
+    const shops = await Shop.find()
+      .populate('items')
+      .populate('owner', '-password');
+    return res.status(200).json({ shops });
+  } catch (error) {
+    console.error("Error fetching all shops:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -1,0 +1,51 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://marketplace.visualstudio.com/items?itemName=pomdtr.excalidraw-editor",
+  "elements": [
+    {
+      "id": "17UqthOHD9qkz-W3PlS_A",
+      "type": "text",
+      "x": 396.25279989653893,
+      "y": 2.428030598663355,
+      "width": 786.4793701171875,
+      "height": 1375,
+      "angle": 0,
+      "strokeColor": "#ffffff",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a1",
+      "roundness": null,
+      "seed": 1205216790,
+      "version": 49,
+      "versionNonce": 1572765130,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1757922078466,
+      "link": null,
+      "locked": false,
+      "text": "1. User Dashboard Layout & Navigation\n\nCreate a dedicated UserDashboard page/component.\nAdd a user-friendly navbar (profile, orders, logout, etc.).\nInclude a search bar and filters (by city, cuisine, rating, etc.).\n2. Fetch & Display Shops\n\nOn dashboard load, fetch all available shops from your backend.\nDisplay shops in a grid or list with key info: name, image, address, rating, cuisine.\nAllow users to filter/sort shops (by location, cuisine, popularity).\n3. Shop Details & Menu\n\nWhen a user clicks a shop, show a detailed shop page:\nShop info (name, image, address, description, rating).\nList of menu items (with image, name, price, type, category).\nOption to view reviews/ratings.\n4. Add to Cart & Ordering\n\nAllow users to add menu items to their cart.\nShow a cart summary (items, quantity, total price).\nImplement checkout flow (address, payment, order confirmation).\n5. User Profile & Orders\n\nAdd a profile section (view/edit user info).\nShow past orders and order status.\nAllow users to reorder or review items/shops.\n6. Location & Personalization\n\nUse geolocation to show nearby shops.\nPersonalize recommendations based on user history or preferences.\n7. Responsive & Modern UI\n\nEnsure the dashboard is mobile-friendly.\nUse modern UI components (cards, modals, toasts).\n8. Error Handling & Loading States\n\nShow loading spinners while fetching data.\nDisplay clear error messages for failed requests.\n9. Security & Access Control\n\nEnsure only authenticated users can access the dashboard.\nProtect user data and order info.\n10. Optional Features\n\nAdd ratings/reviews for shops and items.\nImplement favorite shops/items.\nAdd notifications for order status.\nHow to Start:\n\nBegin with the dashboard layout and shop listing.\nIntegrate backend APIs for fetching shops and items.\nBuild shop detail and menu views.\nAdd cart and order functionality.\nExpand with profile, orders, and personalization features.\n",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "1. User Dashboard Layout & Navigation\n\nCreate a dedicated UserDashboard page/component.\nAdd a user-friendly navbar (profile, orders, logout, etc.).\nInclude a search bar and filters (by city, cuisine, rating, etc.).\n2. Fetch & Display Shops\n\nOn dashboard load, fetch all available shops from your backend.\nDisplay shops in a grid or list with key info: name, image, address, rating, cuisine.\nAllow users to filter/sort shops (by location, cuisine, popularity).\n3. Shop Details & Menu\n\nWhen a user clicks a shop, show a detailed shop page:\nShop info (name, image, address, description, rating).\nList of menu items (with image, name, price, type, category).\nOption to view reviews/ratings.\n4. Add to Cart & Ordering\n\nAllow users to add menu items to their cart.\nShow a cart summary (items, quantity, total price).\nImplement checkout flow (address, payment, order confirmation).\n5. User Profile & Orders\n\nAdd a profile section (view/edit user info).\nShow past orders and order status.\nAllow users to reorder or review items/shops.\n6. Location & Personalization\n\nUse geolocation to show nearby shops.\nPersonalize recommendations based on user history or preferences.\n7. Responsive & Modern UI\n\nEnsure the dashboard is mobile-friendly.\nUse modern UI components (cards, modals, toasts).\n8. Error Handling & Loading States\n\nShow loading spinners while fetching data.\nDisplay clear error messages for failed requests.\n9. Security & Access Control\n\nEnsure only authenticated users can access the dashboard.\nProtect user data and order info.\n10. Optional Features\n\nAdd ratings/reviews for shops and items.\nImplement favorite shops/items.\nAdd notifications for order status.\nHow to Start:\n\nBegin with the dashboard layout and shop listing.\nIntegrate backend APIs for fetching shops and items.\nBuild shop detail and menu views.\nAdd cart and order functionality.\nExpand with profile, orders, and personalization features.\n",
+      "autoResize": true,
+      "lineHeight": 1.25
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
+    "viewBackgroundColor": "#43433f"
+  },
+  "files": {}
+}

@@ -87,7 +87,13 @@ export const deleteItem = async (req, res) => {
         if (!item) {
             return res.status(404).json({ message: "Item not found" });
         }
-        res.status(200).json({ message: "Item deleted successfully" });
+        const shop = await Shop.findOne({ owner: req.userId });
+        if (shop) {
+            shop.items = shop.items.filter(i => i.toString() !== itemId);
+            await shop.save();
+            await shop.populate('items').populate('owner', '-password');
+        }
+        res.status(200).json({ message: "Item deleted successfully", shop });
     } catch (error) {
         res.status(500).json({ message: "delete item error", error: error.message });
     }

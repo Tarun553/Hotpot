@@ -13,6 +13,7 @@ export const upsertShop = async (req, res) => {
     if (req.file) {
       image = await uploadOnCloudinary(req.file.path);
     }
+    console.log(image, name, city, state, address);
 
     // Find shop by owner
     let shop = await Shop.findOne({ owner });
@@ -24,7 +25,10 @@ export const upsertShop = async (req, res) => {
       shop.address = address;
       if (image) shop.image = image;
       await shop.save();
-      await shop.populate('owner', '-password');
+      await shop.populate([
+        { path: 'owner', select: '-password' },
+        { path: 'items' }
+      ]);
       return res.status(200).json({ message: "Shop updated successfully", shop });
     } else {
       // Create shop
@@ -48,7 +52,9 @@ export const upsertShop = async (req, res) => {
 export const getShopByOwner = async (req, res) => {
   try {
     const owner = req.userId;
-    const shop = await Shop.findOne({ owner }).populate('owner', '-password');
+    const shop = await Shop.findOne({ owner })
+      .populate('items')
+      .populate('owner', '-password');
     if (!shop) {
       return res.status(404).json({ message: "Shop not found" });
     }

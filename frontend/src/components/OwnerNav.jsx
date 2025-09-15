@@ -19,6 +19,7 @@ const OwnerNavbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userData } = useSelector((state) => state.user);
+  const { myShopData } = useSelector((state) => state.owner);
 
   // Extract user name + initial
   const fullName = userData?.fullName || "Guest User";
@@ -43,10 +44,12 @@ const OwnerNavbar = () => {
 
       {/* Right Side (Add Food, Orders, Profile) */}
       <div className="flex items-center gap-4 md:gap-6">
-        {/* Add Food Item */}
-        <Button className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-3 py-1 text-sm md:text-base">
-          + Add Food Item
-        </Button>
+        {/* Add Food Item (only if shop exists) */}
+        {myShopData && (
+          <Button className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-3 py-1 text-sm md:text-base">
+            + Add Food Item
+          </Button>
+        )}
 
         {/* Orders */}
         <div className="flex items-center gap-1 md:gap-2 cursor-pointer">

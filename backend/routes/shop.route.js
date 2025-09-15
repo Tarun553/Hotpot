@@ -7,7 +7,7 @@ import { isAuth } from '../middlewares/isAuth.js';
 const shopRouter = express.Router();
 
 
-shopRouter.post('/', isAuth, upload.single('image'), upsertShop);
+shopRouter.post('/create-edit', isAuth, upload.single('image'), upsertShop);
 shopRouter.get('/owner', isAuth, getShopByOwner);
 
 export default shopRouter;

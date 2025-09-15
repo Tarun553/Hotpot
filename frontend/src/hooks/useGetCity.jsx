@@ -1,51 +1,60 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setCity } from "@/redux/userSlice";
+import { setCity, setCurrentState, setCurrentAddress } from "@/redux/userSlice";
 
 const GEOAPIKEY = import.meta.env.VITE_GEOAPIKEY;
 
 const getCityFromCoords = async (lat, lon) => {
-	try {
-		const response = await fetch(
-			`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&format=json&apiKey=${GEOAPIKEY}`
-		);
-		const data = await response.json();
-		const city = data?.results?.[0]?.city || data?.results?.[0]?.state || "Unknown";
-		return city;
-	} catch {
-		return "Unknown";
-	}
+		try {
+			const response = await fetch(
+				`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&format=json&apiKey=${GEOAPIKEY}`
+			);
+			const data = await response.json();
+			const result = data?.results?.[0] || {};
+			const city = result.city || result.state || "Unknown";
+			const state = result.state || "Unknown";
+			const address = result.address_line2 || result.address_line1 || result.formatted || "Unknown";
+			return { city, state, address };
+		} catch {
+			return { city: "Unknown", state: "Unknown", address: "Unknown" };
+		}
 };
 
 
 const useGetCity = () => {
-	const [city, setCityState] = useState("");
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
-	const dispatch = useDispatch();
+		const [city, setCityState] = useState("");
+		const [state, setState] = useState("");
+		const [address, setAddress] = useState("");
+		const [loading, setLoading] = useState(true);
+		const [error, setError] = useState(null);
+		const dispatch = useDispatch();
 
-	useEffect(() => {
-		if (!navigator.geolocation) {
-			setError("Geolocation not supported");
-			setLoading(false);
-			return;
-		}
-		navigator.geolocation.getCurrentPosition(
-			async (pos) => {
-				const { latitude, longitude } = pos.coords;
-				const foundCity = await getCityFromCoords(latitude, longitude);
-				setCityState(foundCity);
-				dispatch(setCity(foundCity));
+		useEffect(() => {
+			if (!navigator.geolocation) {
+				setError("Geolocation not supported");
 				setLoading(false);
-			},
-			(err) => {
-				setError("Unable to get location");
-				setLoading(false);
+				return;
 			}
-		);
-	}, [dispatch]);
+			navigator.geolocation.getCurrentPosition(
+				async (pos) => {
+					const { latitude, longitude } = pos.coords;
+					const { city: foundCity, state: foundState, address: foundAddress } = await getCityFromCoords(latitude, longitude);
+					setCityState(foundCity);
+					setState(foundState);
+					setAddress(foundAddress);
+					dispatch(setCity(foundCity));
+					dispatch(setCurrentState(foundState));
+					dispatch(setCurrentAddress(foundAddress));
+					setLoading(false);
+				},
+				(err) => {
+					setError("Unable to get location");
+					setLoading(false);
+				}
+			);
+		}, [dispatch]);
 
-	return { city, loading, error };
+		return { city, state, address, loading, error };
 };
 
 export default useGetCity;

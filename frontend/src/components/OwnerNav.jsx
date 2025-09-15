@@ -46,7 +46,7 @@ const OwnerNavbar = () => {
       <div className="flex items-center gap-4 md:gap-6">
         {/* Add Food Item (only if shop exists) */}
         {myShopData && (
-          <Button className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-3 py-1 text-sm md:text-base">
+          <Button onClick={() => navigate("/create-item")} className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg px-3 py-1 text-sm md:text-base">
             + Add Food Item
           </Button>
         )}

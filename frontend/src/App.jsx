@@ -9,7 +9,7 @@ import Home from "./pages/Home";
 import useGetCity from "./hooks/useGetCity";
 import useGetMyShop from "./hooks/useGetMyShop";
 import CreateEditShop from "./pages/CreateEditShop";
-
+import EditItemOwner from "./pages/EditItemOwner";
 import AddFoodItem from "./pages/AddFoodItem";
 // Access the server URL from environment variables
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -30,6 +30,7 @@ const App = () => {
         <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/" />} />
         <Route path="/create-shop" element={user ? <CreateEditShop /> : <Navigate to="/login" />} />
         <Route path="/create-item" element={user ? <AddFoodItem /> : <Navigate to="/login" />} />
+        <Route path="/edit-item/:id" element={user ? <EditItemOwner /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );

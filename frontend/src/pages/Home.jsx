@@ -5,7 +5,7 @@ import OwnerDashboard from '../components/OwnerDashboard'
 import DiliveryBoy from '../components/DiliveryBoy'
 const Home = () => {
     const {userData} = useSelector((state)=> state.user)
-    console.log(userData)
+    
 return (
     <div className='w-full min-h-screen bg-orange-50'>
             {userData?.role === 'user' && <UserDashboard userData={userData}/>}

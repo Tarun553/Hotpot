@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import OwnerItemCard from "./OwnerItemCard";
+import { useNavigate } from "react-router";
 
 const OwnerDashboard = () => {
   const { myShopData } = useSelector((state) => state.owner);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100">
@@ -37,7 +39,7 @@ const OwnerDashboard = () => {
                 className="w-full h-56 sm:h-72 object-cover block"
               />
               {/* Edit Button */}
-              <button className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md hover:bg-orange-100 transition border border-orange-200">
+              <button onClick={() => navigate("/create-shop")} className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md hover:bg-orange-100 transition border border-orange-200">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"

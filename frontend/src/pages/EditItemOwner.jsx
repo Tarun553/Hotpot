@@ -1,46 +1,68 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FaUtensils } from "react-icons/fa";
+import { Badge } from "@/components/ui/badge";
 import axios from "axios";
 import { serverUrl } from "../App";
-import { useDispatch } from "react-redux";
-import { setMyShopData } from "../redux/ownerSlice";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+
 const categories = [
-    "select Category",
-    "snacks",
-    "main course",
-    "pizza",
-    "burger",
-    "sandwich",
-    "desserts",
-    "beverages",
-    "fast food",
-    "north indian",
-    "south indian",
-    "chinese",
-    "italian",
-    "others",
+  "snacks",
+  "main course",
+  "pizza",
+  "burger",
+  "sandwich",
+  "desserts",
+  "beverages",
+  "fast food",
+  "north indian",
+  "south indian",
+  "chinese",
+  "italian",
+  "others",
 ];
 
-const AddFoodItem = ({ onSuccess }) => {
+const EditItemOwner = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-    const dispatch = useDispatch();
   const [form, setForm] = useState({
     name: "",
     price: 0,
-    category: "select Category",
-    type: "veg",
+    category: "",
+    foodType: "veg",
+    image: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef();
+
+  useEffect(() => {
+    const fetchItem = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`${serverUrl}/api/items/${id}`, { withCredentials: true });
+        console.log(res.data);
+        const item = res.data.item;
+        setForm({
+          name: item.name || "",
+          price: item.price || 0,
+          category: item.category || "",
+          foodType: item.foodType || "veg",
+          image: item.image || "",
+        });
+        setImagePreview(item.image || "");
+      } catch (err) {
+        setError("Failed to fetch item");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchItem();
+  }, [id]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -59,23 +81,19 @@ const AddFoodItem = ({ onSuccess }) => {
     setLoading(true);
     setError("");
     try {
-      // TODO: Replace with your API call
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("price", form.price);
       formData.append("category", form.category);
-      formData.append("foodType", form.type);
+      formData.append("foodType", form.foodType);
       if (imageFile) formData.append("image", imageFile);
-      const result = await axios.post(`${serverUrl}/api/items/add-item`, formData, { withCredentials: true });
-      console.log(result);
-      dispatch(setMyShopData(result.data));
-    
-      if (onSuccess) onSuccess(form);
-      toast.success("Food item added successfully!");
-      // navigate("/");
-      navigate("/");
+      const res = await axios.put(`${serverUrl}/api/items/edit-item/${id}`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      navigate(-1); // Go back to dashboard
     } catch (err) {
-      setError("Failed to add food item");
+      setError("Failed to update item");
     } finally {
       setLoading(false);
     }
@@ -85,8 +103,7 @@ const AddFoodItem = ({ onSuccess }) => {
     <div className="flex justify-center items-center min-h-screen bg-orange-50">
       <Card className="w-full max-w-md p-8 rounded-xl shadow-xl">
         <div className="flex flex-col items-center mb-6">
-          <FaUtensils className="text-5xl text-orange-600 mb-2" />
-          <h2 className="text-2xl font-bold mb-1">Add Food</h2>
+          <h2 className="text-2xl font-bold mb-1 text-orange-600">Edit Food Item</h2>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -140,6 +157,7 @@ const AddFoodItem = ({ onSuccess }) => {
               className="w-full border rounded px-3 py-2 mt-1"
               required
             >
+              <option value="">Select Category</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -148,11 +166,11 @@ const AddFoodItem = ({ onSuccess }) => {
             </select>
           </div>
           <div>
-            <Label htmlFor="type">Select Food Type</Label>
+            <Label htmlFor="foodType">Select Food Type</Label>
             <select
-              id="type"
-              name="type"
-              value={form.type}
+              id="foodType"
+              name="foodType"
+              value={form.foodType}
               onChange={handleChange}
               className="w-full border rounded px-3 py-2 mt-1"
               required
@@ -169,7 +187,7 @@ const AddFoodItem = ({ onSuccess }) => {
             className="w-full bg-orange-600 hover:bg-orange-700 mt-4"
             disabled={loading}
           >
-            {loading ? "Saving..." : "Save"}
+            {loading ? "Saving..." : "Save Changes"}
           </Button>
         </form>
       </Card>
@@ -177,4 +195,4 @@ const AddFoodItem = ({ onSuccess }) => {
   );
 };
 
-export default AddFoodItem;
+export default EditItemOwner;

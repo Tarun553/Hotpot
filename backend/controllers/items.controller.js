@@ -64,3 +64,31 @@ export const editItem = async (req, res) => {
         res.status(500).json({ message: "edit items error", error: error.message });
     }
 }
+
+export const getItemById = async (req, res) => {
+    try {
+        const { id, itemId } = req.params;
+        // Support both /:id and /:itemId
+        const item = await Item.findById(id || itemId).populate('shop', '-owner');
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+        res.status(200).json({ item });
+    } catch (error) {
+        res.status(500).json({ message: "get item by id error", error: error.message });
+    }
+}
+
+
+export const deleteItem = async (req, res) => {
+    try {
+        const { itemId } = req.params;
+        const item = await Item.findByIdAndDelete(itemId);
+        if (!item) {
+            return res.status(404).json({ message: "Item not found" });
+        }
+        res.status(200).json({ message: "Item deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "delete item error", error: error.message });
+    }
+}

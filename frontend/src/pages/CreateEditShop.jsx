@@ -9,7 +9,10 @@ import { serverUrl } from "../App";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { setMyShopData } from "../redux/ownerSlice";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 const CreateEditShop = ({ shopData, onSuccess }) => {
+  const navigate = useNavigate();
     const dispatch = useDispatch();
   // Get city, state, address from Redux
   const reduxCity = useSelector((state) => state.user.city);
@@ -70,7 +73,8 @@ const CreateEditShop = ({ shopData, onSuccess }) => {
       });
       dispatch(setMyShopData(res.data.shop));
       console.log(res.data.shop);
-      
+      toast.success("Shop saved successfully!");
+      navigate("/");
       if (onSuccess) onSuccess(res.data.shop);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to save shop");

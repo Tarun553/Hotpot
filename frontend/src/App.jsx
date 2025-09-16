@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgetPassword";
 import useGetCurrentUser from "./hooks/useGetCurrentUser";
 import Home from "./pages/Home";
+import UserCart from "./pages/UserCart";
 import useGetCity from "./hooks/useGetCity";
 import useGetMyShop from "./hooks/useGetMyShop";
 import CreateEditShop from "./pages/CreateEditShop";
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/create-shop" element={user ? <CreateEditShop /> : <Navigate to="/login" />} />
         <Route path="/create-item" element={user ? <AddFoodItem /> : <Navigate to="/login" />} />
         <Route path="/edit-item/:id" element={user ? <EditItemOwner /> : <Navigate to="/login" />} />
+        <Route path="/cart" element={user ? <UserCart /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );

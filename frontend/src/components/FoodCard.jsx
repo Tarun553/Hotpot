@@ -1,7 +1,15 @@
 import React from "react";
 import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import useCart from "../hooks/useCart";
 
 const FoodCard = ({ item, shop }) => {
+  const { addItemToCart, getCartByUser } = useCart();
+  const dispatch = useDispatch();
+  
+  
+  
+  // Function to render star ratings
   const renderStars = (rating, count) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -101,6 +109,20 @@ const FoodCard = ({ item, shop }) => {
           <button
             className="ml-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-2 flex items-center justify-center shadow"
             aria-label="Add to cart"
+            onClick={() => {
+              if (quantity > 0) {
+                addItemToCart({
+                  itemId: item._id,
+                  name: item.name,
+                  price: item.price,
+                  image: item.image,
+                  shop: shop.name || "Shop",
+                  quantity,
+                  foodType: item.foodType,
+                });
+                setQuantity(0); // Optionally reset quantity after adding
+              }
+            }}
           >
             <svg
               width="22"

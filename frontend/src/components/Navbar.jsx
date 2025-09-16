@@ -18,11 +18,18 @@ import { serverUrl } from "../App";
 import { useNavigate } from "react-router-dom";
 import { setUserData } from "@/redux/userSlice";
 
+import useCart from "../hooks/useCart";
+
+
 const Navbar = () => {
+  const {getCartByUser} = useCart();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userData, city } = useSelector((state) => state.user);
-
+  const { cartItems } = useSelector((state) => state.user);
+  // Calculate total quantity
+  const totalQuantity = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+ 
   // Extract user name + initial
   const fullName = userData?.fullName || "Guest User";
   const initial = fullName.charAt(0).toUpperCase();
@@ -68,12 +75,14 @@ const Navbar = () => {
       <div className="flex items-center gap-4 md:gap-6">
         {/* Cart */}
         <div className="flex items-center gap-1 md:gap-2 cursor-pointer">
-          <ShoppingCart className="text-orange-600 w-5 h-5 md:w-6 md:h-6" />
+          <Button onClick={() => navigate("/cart")} className="bg-transparent hover:bg-orange-100">
+            <ShoppingCart className="text-orange-600 w-5 h-5 md:w-6 md:h-6" />
+          </Button>
           <span className="hidden md:inline text-sm font-medium text-orange-600">
             My Orders
           </span>
           <span className="ml-1 text-xs text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
-            0
+            {totalQuantity} items
           </span>
         </div>
 

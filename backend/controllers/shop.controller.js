@@ -77,3 +77,21 @@ export const getAllShops = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getShopByCity = async (req, res) => {
+  try {
+    const { city } = req.params;
+    // Escape special regex characters in city input
+    const escapedCity = city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const shops = await Shop.find({ city: { $regex: escapedCity, $options: "i" } })
+      .populate('items')
+      .populate('owner', '-password');
+      if (!shops || shops.length === 0) {
+        return res.status(404).json({ message: "No shops found in this city" });
+      }
+    return res.status(200).json({ shops });
+  } catch (error) {
+    console.error("Error fetching shops by city:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

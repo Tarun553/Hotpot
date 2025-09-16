@@ -11,8 +11,7 @@ const useGetAllShops = () => {
     const fetchAllShops = async () => {
       try {
         const response = await axios.get(`${serverUrl}/api/shop/get-all-shops`, { withCredentials: true });
-        console.log(response.data.shops);
-        dispatch(setShopData(response.data.shops));
+        // dispatch(setShopData(response.data.shops));
       } catch (error) {
         console.error("Error fetching all shops:", error);
       }

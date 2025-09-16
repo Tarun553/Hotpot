@@ -98,3 +98,15 @@ export const deleteItem = async (req, res) => {
         res.status(500).json({ message: "delete item error", error: error.message });
     }
 }
+
+// export const getItemByCity = async (req, res) => {
+//   try {
+//       const { city } = req.params;
+//       const shops = await Shop.find({ city: city.toLowerCase() })
+//         .populate('items')
+//         .populate('owner', '-password');
+//       res.status(200).json({ shops });
+//   } catch (error) {
+//       res.status(500).json({ message: "get item by city error", error: error.message });
+//   }
+// }

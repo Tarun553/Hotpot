@@ -26,6 +26,10 @@ const itemSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     foodType: { type: String, required: true, enum: ["veg", "non-veg"] },
     shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", required: true },
+    rating: {
+      average: { type: Number, default: 0},
+      count: { type: Number, default: 0},
+    }
   },
   { timestamps: true }
 );

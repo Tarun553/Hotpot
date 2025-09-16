@@ -2,8 +2,14 @@ import React from "react";
 import Navbar from "./Navbar";
 import { categories } from "../category";
 import CategoryCard from "./CategoryCard";
-
+import { useSelector } from "react-redux";
+import ShopCard from "./ShopCard";
+import useGetShopByCity from "../hooks/useGetShopByCity";
+import FoodCard from "./FoodCard";
 const UserDashboard = ({ userData }) => {
+  const { city } = useSelector((state) => state.user);
+  const shops = useSelector((state) => state.shop.shops);
+  useGetShopByCity();
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
       <Navbar />
@@ -41,6 +47,65 @@ const UserDashboard = ({ userData }) => {
           <style>{`
             #category-scroll::-webkit-scrollbar { display: none; }
           `}</style>
+        </div>
+        {/* near shop section */}
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+            Nearby Shops {city ? `in ${city}` : ""}
+          </h2>
+          <div className="w-full">
+            <div
+              id="shop-scroll"
+              className="flex overflow-x-auto gap-6 pb-4 scroll-smooth"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {shops && shops.length > 0 ? (
+                shops.map((shop) => <ShopCard key={shop._id} shop={shop} />)
+              ) : (
+                <p className="text-gray-500 text-center">
+                  No shops found in your city.
+                </p>
+              )}
+            </div>
+
+            {/* Hide scrollbar */}
+            <style>{`
+    #shop-scroll::-webkit-scrollbar { display: none; }
+  `}</style>
+          </div>
+        </div>
+        {/* suggested food items */}
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+            Suggested Food Items
+          </h2>
+          <div className="w-full">
+            <div
+              id="food-scroll"
+              className="flex overflow-x-auto gap-6 pb-4 scroll-smooth"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {/* Use FoodCard component for each item */}
+              {shops && shops.length > 0 ? (
+                shops.map((shop) =>
+                  shop.items && shop.items.length > 0
+                    ? shop.items.map((item) => (
+                        <FoodCard key={item._id} item={item} shop={shop} />
+                      ))
+                    : null
+                )
+              ) : (
+                <p className="text-gray-500 text-center">
+                  No suggested food items available.
+                </p>
+              )}
+            </div>
+
+            {/* Hide scrollbar */}
+            <style>{`
+              #food-scroll::-webkit-scrollbar { display: none; }
+            `}</style>
+          </div>
         </div>
       </div>
     </div>

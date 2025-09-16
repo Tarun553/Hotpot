@@ -1,14 +1,14 @@
-import image1 from "../public/image1.jpg";
-import image2 from "../public/image2.webp";
-import image3 from "../public/image3.jpg";
-import image4 from "../public/image4.avif";
-import image5 from "../public/image5.jpg";
-import image6 from "../public/image6.jpg";
-import image7 from "../public/image7.jpg";
-import image8 from "../public/image8.avif";
-import image9 from "../public/image9.jpg";
-import image10 from "../public/image10.avif";
-import image11 from "../public/image11.jpg";
+import image1 from "/image1.jpg";
+import image2 from "/image2.webp";
+import image3 from "/image3.jpg";
+import image4 from "/image4.avif";
+import image5 from "/image5.jpg";
+import image6 from "/image6.jpg";
+import image7 from "/image7.jpg";
+import image8 from "/image8.avif";
+import image9 from "/image9.jpg";
+import image10 from "/image10.avif";
+import image11 from "/image11.jpg";
 
 
 export const categories = [

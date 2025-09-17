@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const shopOrderItemSchema = new mongoose.Schema({
   item: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "FoodItem",
+    ref: "Item",
     required: true,
   },
   quantity: { type: Number },

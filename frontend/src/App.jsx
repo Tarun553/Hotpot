@@ -15,6 +15,10 @@ import EditItemOwner from "./pages/EditItemOwner";
 import AddFoodItem from "./pages/AddFoodItem";
 import useGetAllShops from "./hooks/useGetAllShops";
 import useGetShopByCity from "./hooks/useGetShopByCity";
+import OrderPlaced from "./pages/OrderPlaced";
+import MyOrders from "./pages/MyOrders";
+import useGetMyOrders from "./hooks/useGetMyOrders";
+import useShopOrders from "./hooks/useShopOrders";
 // Access the server URL from environment variables
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
 
@@ -26,7 +30,8 @@ const App = () => {
   useGetMyShop();
   useGetAllShops();
   useGetShopByCity();
-
+  useGetMyOrders();
+  useShopOrders();
   return (
     <BrowserRouter>
       <Routes>
@@ -39,6 +44,9 @@ const App = () => {
         <Route path="/edit-item/:id" element={user ? <EditItemOwner /> : <Navigate to="/login" />} />
         <Route path="/cart" element={user ? <UserCart /> : <Navigate to="/login" />} />
         <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
+        <Route path="/order-placed" element={user ? <OrderPlaced /> : <Navigate to="/login" />} />
+        {/* my order  route */}
+        <Route path="/my-orders" element={user ? <MyOrders /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );

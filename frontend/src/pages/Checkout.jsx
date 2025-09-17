@@ -136,8 +136,12 @@ import { Card } from "@/components/ui/card";
 import useCart from "../hooks/useCart";
 import { useDispatch, useSelector } from "react-redux";
 import { setLocation as setMapLocation, setAddress as setMapAddress } from "@/redux/mapSlice";
+import axios from "axios";
+import { serverUrl } from "../App";
+import { useNavigate } from "react-router";
 
 const Checkout = () => {
+  const navigate  = useNavigate();
   const { cartItems } = useCart();
   const dispatch = useDispatch();
   const { location, address } = useSelector((state) => state.map);
@@ -153,6 +157,31 @@ const Checkout = () => {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+  
+  
+  
+  
+  const handlePlaceOrder = async () => {
+    try {
+      const response = await axios.post(`${serverUrl}/api/orders/place`,  {
+        paymentMethod,
+        deliveryAddress: {
+          text: address,
+          latitude: location.lat,
+          longitude: location.long,
+        },
+      }, { withCredentials: true });
+
+      if (response.status === 201) {
+        navigate("/order-placed");
+        // Clear cart and reset state
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Failed to place order");
+    }
+  };
+
   const deliveryFee = 40;
   const total = subtotal + deliveryFee;
 
@@ -386,7 +415,7 @@ const Checkout = () => {
 
         {/* Place Order Button */}
         <div className="mt-6">
-          <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl shadow-lg transition">
+          <Button onClick={handlePlaceOrder} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl shadow-lg transition">
             Place Order
           </Button>
         </div>

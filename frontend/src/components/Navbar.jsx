@@ -78,7 +78,7 @@ const Navbar = () => {
           <Button onClick={() => navigate("/cart")} className="bg-transparent hover:bg-orange-100">
             <ShoppingCart className="text-orange-600 w-5 h-5 md:w-6 md:h-6" />
           </Button>
-          <span className="hidden md:inline text-sm font-medium text-orange-600">
+          <span onClick={() => navigate("/my-orders")} className="hidden md:inline text-sm font-medium text-orange-600">
             My Orders
           </span>
           <span className="ml-1 text-xs text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">

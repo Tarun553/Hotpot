@@ -6,9 +6,7 @@ import useCart from "../hooks/useCart";
 const FoodCard = ({ item, shop }) => {
   const { addItemToCart, getCartByUser } = useCart();
   const dispatch = useDispatch();
-  
-  
-  
+
   // Function to render star ratings
   const renderStars = (rating, count) => {
     const stars = [];
@@ -80,9 +78,7 @@ const FoodCard = ({ item, shop }) => {
         {renderStars(item.rating?.average || 0, item.rating?.count || 0)}
 
         {/* Price */}
-        <p className="text-sm font-bold text-orange-600 mt-2">
-          ₹{item.price}
-        </p>
+        <p className="text-sm font-bold text-orange-600 mt-2">₹{item.price}</p>
 
         {/* Quantity & Add to Cart */}
         <div className="flex items-center justify-between mt-3">

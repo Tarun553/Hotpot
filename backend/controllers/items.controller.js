@@ -110,3 +110,38 @@ export const deleteItem = async (req, res) => {
 //       res.status(500).json({ message: "get item by city error", error: error.message });
 //   }
 // }
+
+// New controller to handle item rating
+
+
+export const rateItem = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { itemId } = req.params;
+    const { value } = req.body;
+    if (value < 1 || value > 5) {
+      return res.status(400).json({ message: "Rating value must be between 1 and 5" });
+    }
+    const item = await Item.findById(itemId);
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+    // Check if user has already rated
+    const existingRatingIndex = item.ratings.findIndex(r => r.user.toString() === userId);
+    if (existingRatingIndex >= 0) {
+      // Update existing rating
+      item.ratings[existingRatingIndex].value = value;
+    } else {
+        // Add new rating
+        item.ratings.push({ user: userId, value });
+        item.rating.count += 1;
+    }
+    // Recalculate average rating
+    const totalRating = item.ratings.reduce((sum, r) => sum + r.value, 0);
+    item.rating.average = totalRating / item.rating.count;
+    await item.save();
+    res.status(200).json({ message: "Rating submitted", item });
+  } catch (error) {
+    res.status(500).json({ message: "Error rating item", error: error.message });
+  }
+};

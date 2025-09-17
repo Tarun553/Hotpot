@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import useCart from "../hooks/useCart";
+import { Link } from "react-router";
 
 const UserCart = () => {
   const {
@@ -128,9 +129,11 @@ const UserCart = () => {
 
             {/* Checkout */}
             <div className="flex justify-end pt-4">
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition">
-                Checkout
-              </Button>
+                <Link to="/checkout">
+                  <Button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition">
+                    Checkout
+                  </Button>
+                </Link>
             </div>
           </div>
         )}

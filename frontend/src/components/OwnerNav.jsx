@@ -72,7 +72,7 @@ const OwnerNavbar = () => {
         >
           <div className="relative">
             <ShoppingCart className="text-orange-600 w-5 h-5 md:w-6 md:h-6" />
-            {shopOrders.length > 0 && (
+            {shopOrders?.length > 0 && (
               <span className="absolute -top-2 -right-2 text-xs bg-orange-600 text-white px-1.5 py-0.5 rounded-full">
                 {shopOrders.length}
               </span>

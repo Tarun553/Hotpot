@@ -2,6 +2,75 @@ import Order from "../models/order.model.js";
 import Cart from "../models/cart.model.js";
 import Item from "../models/items.model.js";
 import Shop from "../models/shop.model.js";
+import User from "../models/user.model.js";
+import DeliveryAssignment from "../models/deliveryAssignment.model.js";
+
+// Helper function to find delivery boys within 5km radius
+const findNearbyDeliveryBoys = async (latitude, longitude, maxDistance = 5000) => {
+  try {
+    console.log(`🔍 Searching for delivery boys within ${maxDistance}m of coordinates: ${latitude}, ${longitude}`);
+    
+    const deliveryBoys = await User.find({
+      role: "deliveryBoy",
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude], // MongoDB expects [longitude, latitude]
+          },
+          $maxDistance: maxDistance, // Distance in meters (5km = 5000m)
+        },
+      },
+    }).select("fullName email mobile location");
+
+    console.log(`📍 Found ${deliveryBoys.length} delivery boys within 5km:`);
+    deliveryBoys.forEach(db => {
+      console.log(`- ${db.fullName} (${db.email}) at [${db.location.coordinates}]`);
+    });
+
+    return deliveryBoys;
+  } catch (error) {
+    console.error("❌ Error finding nearby delivery boys:", error);
+    return [];
+  }
+};
+
+// Helper function to create delivery assignment
+const createDeliveryAssignment = async (orderId, shopId, shopOrderId, deliveryAddress) => {
+  try {
+    console.log(`🎯 Creating delivery assignment for order ${orderId}`);
+    
+    // Find nearby delivery boys
+    const nearbyDeliveryBoys = await findNearbyDeliveryBoys(
+      deliveryAddress.latitude,
+      deliveryAddress.longitude
+    );
+
+    if (nearbyDeliveryBoys.length === 0) {
+      console.log("❌ No delivery boys found within 5km radius");
+      return null;
+    }
+
+    // Create delivery assignment and broadcast to nearby delivery boys
+    const deliveryAssignment = new DeliveryAssignment({
+      order: orderId,
+      shop: shopId,
+      shopOrderId: shopOrderId,
+      broadcastedTo: nearbyDeliveryBoys.map(db => db._id),
+      status: "broadcasted",
+    });
+
+    await deliveryAssignment.save();
+    
+    console.log(`✅ Order broadcasted to ${nearbyDeliveryBoys.length} delivery boys within 5km`);
+    console.log(`📋 Assignment ID: ${deliveryAssignment._id}`);
+    
+    return deliveryAssignment;
+  } catch (error) {
+    console.error("❌ Error creating delivery assignment:", error);
+    return null;
+  }
+};
 
 // Place Order - Groups cart items by shop and creates orders
 export const placeOrder = async (req, res) => {
@@ -245,62 +314,300 @@ export const getShopOrders = async (req, res) => {
 };
 
 
-// // Get Orders (for both user & shop owner)
-// export const getOrders = async (req, res) => {
-//   try {
-//     const userId = req.userId;
-//     const role = req.user.role; // make sure you set this in auth middleware
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, shopId } = req.params;
+    const { status } = req.body;
+    const ownerId = req.userId;
+    console.log("Owner ID:", ownerId);
+    console.log("Order ID:", orderId);
+    console.log("New Status:", status);
 
-//     let orders;
+    // ✅ Validate status
+    const validStatuses = [
+      "pending",
+      "accepted",
+      "preparing",
+      "on the way",
+      "delivered",
+      "cancelled",
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
 
-//     if (role === "user") {
-//       // Normal user → show their own orders
-//       orders = await Order.find({ user: userId })
-//         .populate({
-//           path: "shopOrder.shop",
-//           select: "name image",
-//         })
-//         .populate({
-//           path: "shopOrder.shopOrderItems.item",
-//           select: "name price image category foodType",
-//         })
-//         .sort({ createdAt: -1 });
+    // First, get the order to access delivery address
+    const existingOrder = await Order.findOne({ 
+      _id: orderId, 
+      "shopOrder.owner": ownerId 
+    });
 
-//       return res.json(orders);
-//     } 
-    
-//     if (role === "owner") {
-//       // Shop owner → show only orders of their shops
-//       orders = await Order.find({ "shopOrder.owner": userId })
-//         .populate("user", "name email phone")
-//         .populate({
-//           path: "shopOrder.shop",
-//           select: "name image",
-//         })
-//         .populate({
-//           path: "shopOrder.shopOrderItems.item",
-//           select: "name price image category foodType",
-//         })
-//         .sort({ createdAt: -1 });
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Order not found or not authorized" });
+    }
 
-//       // Filter shopOrder array to only this owner's shops
-//       const filteredOrders = orders
-//         .map((order) => ({
-//           ...order.toObject(),
-//           shopOrder: order.shopOrder.filter(
-//             (shopOrder) => shopOrder.owner.toString() === userId.toString()
-//           ),
-//         }))
-//         .filter((order) => order.shopOrder.length > 0);
+    // Find the specific shop order
+    const shopOrder = existingOrder.shopOrder.find(so => so.owner.toString() === ownerId.toString());
+    if (!shopOrder) {
+      return res.status(404).json({ message: "Shop order not found" });
+    }
 
-//       return res.json(filteredOrders);
-//     }
+    // ✅ Update the shopOrder status + push into statusHistory in one go
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, "shopOrder.owner": ownerId },
+      {
+        $set: { "shopOrder.$.status": status },
+        $push: {
+          "shopOrder.$.statusHistory": { status, updatedAt: new Date() },
+        },
+      },
+      { new: true } // return updated doc
+    )
+      .populate("user", "name email phone")
+      .populate("shopOrder.shop", "name image address phone")
+      .populate("shopOrder.owner", "name email")
+      .populate(
+        "shopOrder.shopOrderItems.item",
+        "name price image category foodType"
+      );
 
-//     // if role is something else
-//     return res.status(403).json({ message: "Unauthorized role" });
+    // ✅ Auto-assign delivery boys when status changes to "preparing"
+    if (status === "preparing" && existingOrder.deliveryAddress) {
+      console.log(`🚚 Order status changed to 'preparing' - attempting delivery assignment`);
+      console.log(`📍 Delivery address: ${JSON.stringify(existingOrder.deliveryAddress)}`);
+      
+      try {
+        // Check if delivery assignment already exists for this shop order
+        const existingAssignment = await DeliveryAssignment.findOne({
+          order: orderId,
+          shop: shopId,
+          shopOrderId: shopOrder._id
+        });
 
-//   } catch (error) {
-//     console.error("Get orders error:", error);
-//     res.status(500).json({ message: "Failed to fetch orders", error: error.message });
-//   }
-// };
+        if (!existingAssignment) {
+          console.log("🔄 Creating new delivery assignment for order:", orderId);
+          
+          const deliveryAssignment = await createDeliveryAssignment(
+            orderId,
+            shopId,
+            shopOrder._id,
+            existingOrder.deliveryAddress
+          );
+
+          if (deliveryAssignment) {
+            // Update the shop order with the delivery assignment reference
+            await Order.findOneAndUpdate(
+              { 
+                _id: orderId, 
+                "shopOrder._id": shopOrder._id 
+              },
+              {
+                $set: { "shopOrder.$.assigment": deliveryAssignment._id },
+              }
+            );
+            
+            console.log("✅ Delivery assignment created and linked to order");
+          } else {
+            console.log("⚠️ Failed to create delivery assignment - no delivery boys found within 5km");
+          }
+        } else {
+          console.log("ℹ️ Delivery assignment already exists for this order");
+        }
+      } catch (assignmentError) {
+        console.error("❌ Error in delivery assignment:", assignmentError);
+        // Don't fail the order status update if delivery assignment fails
+      }
+    } else if (status === "preparing") {
+      console.log("⚠️ Order status is 'preparing' but no delivery address found");
+    }
+
+    return res.json({ 
+      message: "Order status updated", 
+      order,
+      ...(status === "preparing" ? { deliveryAssignmentAttempted: true } : {})
+    });
+  } catch (error) {
+    console.error("Update order status error:", error);
+    res.status(500).json({
+      message: "Failed to update order status",
+      error: error.message,
+    });
+  }
+};
+
+
+export const rate = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { ratings } = req.body; // Expecting an array of { itemId, rating, review }
+    const userId = req.userId;
+    if (!ratings || !Array.isArray(ratings) || ratings.length === 0) {
+      return res.status(400).json({ message: "Ratings are required" });
+    }
+    // Verify order belongs to user
+    const order = await Order.findOne({ _id: orderId, user: userId });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    // Update each item's ratings
+    for (const r of ratings) {
+      const { itemId, rating, review } = r;
+      if (!itemId || !rating) continue;
+      await Item.findByIdAndUpdate(itemId, {
+        $push: { ratings: { user: userId, rating, review } }
+      });
+    }
+    res.json({ message: "Ratings submitted successfully" });
+  } catch (error) {
+    console.error("Submit ratings error:", error);
+    res.status(500).json({ message: "Failed to submit ratings", error: error.message });
+  }
+};
+
+// ✅ Get available delivery assignments for delivery boys
+export const getAvailableDeliveries = async (req, res) => {
+  try {
+    const deliveryBoyId = req.userId;
+
+    // Find delivery assignments that were broadcasted to this delivery boy
+    const availableDeliveries = await DeliveryAssignment.find({
+      broadcastedTo: deliveryBoyId,
+      status: "broadcasted",
+      assignedTo: null
+    })
+    .populate({
+      path: "order",
+      select: "deliveryAddress totalAmount createdAt",
+      populate: {
+        path: "user",
+        select: "fullName mobile"
+      }
+    })
+    .populate("shop", "name address phone")
+    .sort({ assignedAt: -1 });
+
+    res.json(availableDeliveries);
+  } catch (error) {
+    console.error("Get available deliveries error:", error);
+    res.status(500).json({ message: "Failed to fetch available deliveries", error: error.message });
+  }
+};
+
+// ✅ Accept delivery assignment
+export const acceptDelivery = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const deliveryBoyId = req.userId;
+
+    // Check if delivery boy was broadcasted to and assignment is still available
+    const assignment = await DeliveryAssignment.findOne({
+      _id: assignmentId,
+      broadcastedTo: deliveryBoyId,
+      status: "broadcasted",
+      assignedTo: null
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Delivery assignment not found or already taken" });
+    }
+
+    // Assign delivery to this delivery boy
+    assignment.assignedTo = deliveryBoyId;
+    assignment.status = "assigned";
+    await assignment.save();
+
+    // Update the shop order status to "on the way"
+    await Order.findOneAndUpdate(
+      { 
+        _id: assignment.order,
+        "shopOrder._id": assignment.shopOrderId 
+      },
+      {
+        $set: { "shopOrder.$.status": "on the way" },
+        $push: {
+          "shopOrder.$.statusHistory": { 
+            status: "on the way", 
+            updatedAt: new Date() 
+          },
+        },
+      }
+    );
+
+    res.json({ message: "Delivery accepted successfully", assignment });
+  } catch (error) {
+    console.error("Accept delivery error:", error);
+    res.status(500).json({ message: "Failed to accept delivery", error: error.message });
+  }
+};
+
+// ✅ Get assigned deliveries for delivery boy
+export const getMyDeliveries = async (req, res) => {
+  try {
+    const deliveryBoyId = req.userId;
+
+    const myDeliveries = await DeliveryAssignment.find({
+      assignedTo: deliveryBoyId,
+      status: { $in: ["assigned"] }
+    })
+    .populate({
+      path: "order",
+      select: "deliveryAddress totalAmount createdAt",
+      populate: {
+        path: "user",
+        select: "fullName mobile"
+      }
+    })
+    .populate("shop", "name address phone")
+    .sort({ assignedAt: -1 });
+
+    res.json(myDeliveries);
+  } catch (error) {
+    console.error("Get my deliveries error:", error);
+    res.status(500).json({ message: "Failed to fetch my deliveries", error: error.message });
+  }
+};
+
+// ✅ Complete delivery
+export const completeDelivery = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const deliveryBoyId = req.userId;
+
+    // Find the assignment
+    const assignment = await DeliveryAssignment.findOne({
+      _id: assignmentId,
+      assignedTo: deliveryBoyId,
+      status: "assigned"
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Delivery assignment not found" });
+    }
+
+    // Mark assignment as completed
+    assignment.status = "completed";
+    await assignment.save();
+
+    // Update the shop order status to "delivered"
+    await Order.findOneAndUpdate(
+      { 
+        _id: assignment.order,
+        "shopOrder._id": assignment.shopOrderId 
+      },
+      {
+        $set: { "shopOrder.$.status": "delivered" },
+        $push: {
+          "shopOrder.$.statusHistory": { 
+            status: "delivered", 
+            updatedAt: new Date() 
+          },
+        },
+      }
+    );
+
+    res.json({ message: "Delivery completed successfully", assignment });
+  } catch (error) {
+    console.error("Complete delivery error:", error);
+    res.status(500).json({ message: "Failed to complete delivery", error: error.message });
+  }
+};

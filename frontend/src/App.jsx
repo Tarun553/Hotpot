@@ -19,6 +19,9 @@ import OrderPlaced from "./pages/OrderPlaced";
 import MyOrders from "./pages/MyOrders";
 import useGetMyOrders from "./hooks/useGetMyOrders";
 import useShopOrders from "./hooks/useShopOrders";
+import useUpdateLocation from "./hooks/useUpdateLocation";
+import DeliveryBoyDashboard from "./pages/DeliveryBoyDashboard";
+import DeliveryBoySetup from "./pages/DeliveryBoySetup";
 // Access the server URL from environment variables
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
 
@@ -32,6 +35,7 @@ const App = () => {
   useGetShopByCity();
   useGetMyOrders();
   useShopOrders();
+  useUpdateLocation();
   return (
     <BrowserRouter>
       <Routes>
@@ -47,6 +51,9 @@ const App = () => {
         <Route path="/order-placed" element={user ? <OrderPlaced /> : <Navigate to="/login" />} />
         {/* my order  route */}
         <Route path="/my-orders" element={user ? <MyOrders /> : <Navigate to="/login" />} />
+        {/* delivery boy routes */}
+        <Route path="/delivery-dashboard" element={user?.role === 'deliveryBoy' ? <DeliveryBoyDashboard /> : <Navigate to="/login" />} />
+        <Route path="/delivery-setup" element={user?.role === 'deliveryBoy' ? <DeliveryBoySetup /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );

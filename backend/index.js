@@ -8,9 +8,27 @@ import itemRouter from "./routes/item.route.js";
 import cookieParser from "cookie-parser";
 import cartRouter from "./routes/cart.route.js";
 import orderRouter from "./routes/order.route.js";
+import deliveryRouter from "./routes/delivery.route.js";
+import User from "./models/user.model.js";
+
 const app = express();
 
-connectDB();
+// Connect to database and ensure indexes
+const initializeServer = async () => {
+  try {
+    await connectDB();
+    
+    // Ensure geospatial index exists for delivery boy location queries
+    console.log('🔧 Ensuring geospatial index for user locations...');
+    await User.collection.createIndex({ "location": "2dsphere" });
+    console.log('✅ Geospatial index ensured for user locations');
+    
+  } catch (error) {
+    console.error('❌ Server initialization error:', error);
+  }
+};
+
+initializeServer();
 
 app.use(
   cors({
@@ -29,6 +47,7 @@ app.use("/api/shop", shopRouter);
 app.use("/api/items", itemRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/delivery", deliveryRouter);
 // health check route
 app.get("/", (req, res) => {
   res.send("Hello World!");

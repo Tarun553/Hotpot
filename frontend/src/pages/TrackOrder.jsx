@@ -71,40 +71,7 @@ const TrackOrder = () => {
     fetchTracking(false); // Don't show full loading for refresh
   };
 
-  // OTP verification handler
-  // const handleOtpSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!otp || otp.length !== 4) {
-  //     setOtpError("Please enter a valid 4-digit OTP");
-  //     return;
-  //   }
 
-  //   try {
-  //     const response = await fetch(`${serverUrl}/api/orders/${orderId}/verify-delivery`, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       credentials: 'include',
-  //       body: JSON.stringify({ otp: otp })
-  //     });
-
-  //     const data = await response.json();
-      
-  //     if (response.ok) {
-  //       setShowOtpModal(false);
-  //       setOtp("");
-  //       setOtpError("");
-  //       fetchTracking(false); // Refresh tracking data
-  //       alert("Order delivered successfully! ✅");
-  //     } else {
-  //       setOtpError(data.message || "Invalid OTP. Please try again.");
-  //     }
-  //   } catch (err) {
-  //     setOtpError("Failed to verify OTP. Please try again.");
-  //     console.error("OTP verification error:", err);
-  //   }
-  // };
 
   if (loading) {
     return (
@@ -423,61 +390,7 @@ const TrackOrder = () => {
         </div>
       </div>
 
-      {/* OTP Verification Modal
-      {showOtpModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Verify Delivery</h3>
-            <form onSubmit={handleOtpSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter 4-digit OTP shared by delivery partner:
-                </label>
-                <input
-                  type="text"
-                  maxLength="4"
-                  pattern="[0-9]{4}"
-                  value={otp}
-                  onChange={(e) => {
-                    setOtp(e.target.value.replace(/\D/g, ''));
-                    setOtpError('');
-                  }}
-                  className="w-full px-4 py-3 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 tracking-widest"
-                  placeholder="0000"
-                  autoFocus
-                />
-                {otpError && (
-                  <p className="text-red-600 text-sm mt-2">{otpError}</p>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOtpModal(false);
-                    setOtp('');
-                    setOtpError('');
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={otp.length !== 4}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium ${
-                    otp.length === 4
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  Verify & Complete
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )} */}
+  
 
       {/* Status History */}
       {tracking.statusHistory && tracking.statusHistory.length > 0 && (

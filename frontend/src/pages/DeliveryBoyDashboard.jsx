@@ -210,7 +210,7 @@ const DeliveryBoyDashboard = () => {
                             {delivery.order?.deliveryAddress?.latitude &&
                              delivery.order?.deliveryAddress?.longitude && (
                               <p className="text-xs text-gray-500">
-                                ~{calculateDistance(0,0,delivery.order.deliveryAddress.latitude,delivery.order.deliveryAddress.longitude)} km away
+                                ~{calculateDistance(delivery.order.deliveryAddress.latitude,delivery.order.deliveryAddress.longitude)} km away
                               </p>
                             )}
                           </div>

@@ -41,6 +41,25 @@ const orderSchema = new mongoose.Schema(
     deliveryAddress: { text: String, latitude: Number, longitude: Number },
     totalAmount: { type: Number, required: true },
     shopOrder: [shopOrderSchema],
+    
+    // ✅ Delivery OTP fields
+    deliveryOtp: {
+      type: String,
+      default: null
+    },
+    otpGeneratedAt: {
+      type: Date,
+      default: null
+    },
+    deliveredAt: {
+      type: Date,
+      default: null
+    },
+    orderStatus: {
+      type: String,
+      enum: ["pending", "confirmed", "preparing", "on the way", "delivered", "cancelled"],
+      default: "pending"
+    }
   },
   { timestamps: true }
 );

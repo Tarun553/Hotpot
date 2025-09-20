@@ -46,6 +46,26 @@ const userSchema = new mongoose.Schema(
         default: [0, 0], // [longitude, latitude]
       },
     },
+
+    // ✅ Delivery boy stats
+    deliveryStats: {
+      totalDeliveries: {
+        type: Number,
+        default: 0
+      },
+      earnings: {
+        type: Number,
+        default: 0
+      },
+      rating: {
+        type: Number,
+        default: 0
+      },
+      completedToday: {
+        type: Number,
+        default: 0
+      }
+    }
   },
   { timestamps: true }
 );

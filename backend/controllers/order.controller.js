@@ -567,45 +567,89 @@ export const getMyDeliveries = async (req, res) => {
   }
 };
 
-// ✅ Complete delivery
+// ✅ Complete delivery with OTP verification
 export const completeDelivery = async (req, res) => {
   try {
     const { assignmentId } = req.params;
+    const { otp } = req.body;
     const deliveryBoyId = req.userId;
 
-    // Find the assignment
+    console.log(`🔒 Delivery boy ${deliveryBoyId} attempting to complete assignment ${assignmentId} with OTP: ${otp}`);
+
+    if (!otp || otp.length !== 4) {
+      return res.status(400).json({ message: "Please provide a valid 4-digit OTP" });
+    }
+
+    // Find the delivery assignment
     const assignment = await DeliveryAssignment.findOne({
       _id: assignmentId,
       assignedTo: deliveryBoyId,
       status: "assigned"
-    });
+    }).populate('order');
 
     if (!assignment) {
-      return res.status(404).json({ message: "Delivery assignment not found" });
+      return res.status(404).json({ message: "Delivery assignment not found or not assigned to you" });
     }
 
-    // Mark assignment as completed
+    // Find the order
+    const order = await Order.findById(assignment.order._id);
+    
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Verify OTP
+    if (order.deliveryOtp !== otp) {
+      console.log(`❌ Invalid OTP provided. Expected: ${order.deliveryOtp}, Received: ${otp}`);
+      return res.status(400).json({ message: "Invalid OTP. Please ask the customer for the correct OTP." });
+    }
+
+    // Check if OTP is not expired (valid for 2 hours for delivery boys)
+    const otpAge = new Date() - new Date(order.otpGeneratedAt);
+    if (otpAge > 2 * 60 * 60 * 1000) { // 2 hours in milliseconds
+      return res.status(400).json({ message: "OTP has expired. Please contact support." });
+    }
+
+    // Update order status to delivered
+    for (let shopOrder of order.shopOrder) {
+      shopOrder.status = "delivered";
+      shopOrder.statusHistory.push({
+        status: "delivered",
+        updatedAt: new Date()
+      });
+    }
+
+    order.orderStatus = "delivered";
+    order.deliveredAt = new Date();
+    order.deliveryOtp = null; // Clear OTP after successful verification
+    order.otpGeneratedAt = null;
+
+    await order.save();
+
+    // Update delivery assignment
     assignment.status = "completed";
+    assignment.completedAt = new Date();
     await assignment.save();
 
-    // Update the shop order status to "delivered"
-    await Order.findOneAndUpdate(
-      { 
-        _id: assignment.order,
-        "shopOrder._id": assignment.shopOrderId 
-      },
-      {
-        $set: { "shopOrder.$.status": "delivered" },
-        $push: {
-          "shopOrder.$.statusHistory": { 
-            status: "delivered", 
-            updatedAt: new Date() 
-          },
-        },
+    // Update delivery boy's stats (optional)
+    await User.findByIdAndUpdate(deliveryBoyId, {
+      $inc: { 
+        'deliveryStats.totalDeliveries': 1,
+        'deliveryStats.earnings': order.deliveryFee || 40
       }
-    );
+    });
 
-    res.json({ message: "Delivery completed successfully", assignment });
+    console.log(`✅ Delivery completed successfully by ${deliveryBoyId} for order ${order._id}`);
+    
+    res.json({ 
+      message: "Delivery completed successfully! 🎉",
+      assignment: assignment,
+      order: {
+        _id: order._id,
+        status: order.orderStatus,
+        deliveredAt: order.deliveredAt
+      }
+    });
   } catch (error) {
     console.error("Complete delivery error:", error);
     res.status(500).json({ message: "Failed to complete delivery", error: error.message });
@@ -643,6 +687,8 @@ export const getOrderTracking = async (req, res) => {
     const { orderId } = req.params;
     const userId = req.userId;
 
+    console.log(`📍 Fetching tracking for order: ${orderId}, user: ${userId}`);
+
     // Find the order and ensure the user is authorized
     const order = await Order.findOne({ _id: orderId, user: userId })
       .populate({
@@ -652,6 +698,15 @@ export const getOrderTracking = async (req, res) => {
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found or not authorized' });
+    }
+
+    // Auto-generate OTP if order is "on the way" and no OTP exists
+    if (order.shopOrder.some(so => so.status === 'on the way') && !order.deliveryOtp) {
+      const deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      order.deliveryOtp = deliveryOtp;
+      order.otpGeneratedAt = new Date();
+      await order.save();
+      console.log(`🔒 Auto-generated delivery OTP ${deliveryOtp} for order ${orderId}`);
     }
 
     // Find delivery assignment for this order
@@ -669,7 +724,9 @@ export const getOrderTracking = async (req, res) => {
         message: 'No delivery assignment found for this order',
         order: {
           status: order.shopOrder[0]?.status || 'pending',
-          deliveryAddress: order.deliveryAddress
+          deliveryAddress: order.deliveryAddress,
+          deliveryOtp: order.deliveryOtp,
+          otpGeneratedAt: order.otpGeneratedAt
         }
       });
     }
@@ -695,9 +752,13 @@ export const getOrderTracking = async (req, res) => {
       deliveryAddress: order.deliveryAddress,
       shop: shopOrder?.shop || null,
       updatedAt: deliveryAssignment.updatedAt,
-      assignmentStatus: deliveryAssignment.status
+      assignmentStatus: deliveryAssignment.status,
+      deliveryOtp: order.deliveryOtp, // Include OTP in response
+      otpGeneratedAt: order.otpGeneratedAt,
+      deliveredAt: order.deliveredAt
     };
 
+    console.log(`📦 Tracking response:`, JSON.stringify(trackingInfo, null, 2));
     return res.json(trackingInfo);
   } catch (error) {
     console.error('Get order tracking error:', error);

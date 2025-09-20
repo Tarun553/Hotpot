@@ -7,6 +7,7 @@ import useDeliveryBoy from '../hooks/useDeliveryBoy';
 import DeliveryBoyNavbar from '../components/DeliveryBoyNavbar';
 import { MapPin, Clock, Package, DollarSign, Phone, User, Truck, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { serverUrl } from '../App';
 
 const DeliveryBoyDashboard = () => {
   const {
@@ -19,6 +20,11 @@ const DeliveryBoyDashboard = () => {
   } = useDeliveryBoy();
 
   const [processingId, setProcessingId] = useState(null);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpDeliveryData, setOtpDeliveryData] = useState(null);
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleAcceptDelivery = async (assignmentId) => {
     setProcessingId(assignmentId);
@@ -26,10 +32,59 @@ const DeliveryBoyDashboard = () => {
     setProcessingId(null);
   };
 
-  const handleCompleteDelivery = async (assignmentId) => {
-    setProcessingId(assignmentId);
-    await completeDelivery(assignmentId);
-    setProcessingId(null);
+  const handleCompleteDelivery = async (assignmentId, customerName) => {
+    setOtpDeliveryData({ assignmentId, customerName });
+    setShowOtpModal(true);
+    setOtp('');
+    setOtpError('');
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!otp || otp.length !== 4) {
+      setOtpError('Please enter a valid 4-digit OTP');
+      return;
+    }
+
+    setIsVerifying(true);
+    
+    try {
+      // Call the backend API to verify OTP and complete delivery
+      const response = await fetch(`${serverUrl}/api/delivery/complete/${otpDeliveryData.assignmentId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ otp })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setShowOtpModal(false);
+        setOtp('');
+        setOtpError('');
+        setOtpDeliveryData(null);
+        toast.success('🎉 Delivery completed successfully!');
+        refreshData(); // Refresh the delivery data
+      } else {
+        setOtpError(data.message || 'Invalid OTP. Please try again.');
+      }
+    } catch (error) {
+      setOtpError('Failed to verify OTP. Please try again.');
+      console.error('OTP verification error:', error);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const closeOtpModal = () => {
+    setShowOtpModal(false);
+    setOtp('');
+    setOtpError('');
+    setOtpDeliveryData(null);
   };
 
   const formatAddress = (address) => {
@@ -220,9 +275,9 @@ const DeliveryBoyDashboard = () => {
 
                         <div className="flex gap-2">
                           <Button
-                            onClick={() => handleCompleteDelivery(delivery._id)}
+                            onClick={() => handleCompleteDelivery(delivery._id, delivery.order?.user?.fullName)}
                             disabled={processingId === delivery._id}
-                            className="flex-1 bg-orange-600 hover:bg-orange-700"
+                            className="flex-1 bg-green-600 hover:bg-green-700"
                           >
                             {processingId === delivery._id ? "Completing..." : "Mark as Delivered"}
                           </Button>
@@ -247,6 +302,92 @@ const DeliveryBoyDashboard = () => {
               )}
             </TabsContent>
           </Tabs>
+
+          {/* OTP Verification Modal */}
+          {showOtpModal && otpDeliveryData && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    🔒 Verify Delivery
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Ask the customer <strong>"{otpDeliveryData.customerName}"</strong> for their 4-digit delivery OTP
+                  </p>
+                </div>
+
+                <form onSubmit={handleOtpSubmit}>
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                      Enter OTP provided by customer:
+                    </label>
+                    <input
+                      type="text"
+                      maxLength="4"
+                      pattern="[0-9]{4}"
+                      value={otp}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        setOtp(value);
+                        setOtpError('');
+                      }}
+                      className="w-full px-4 py-4 text-center text-3xl font-bold border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 tracking-[0.5em] bg-gray-50"
+                      placeholder="0000"
+                      autoFocus
+                      disabled={isVerifying}
+                    />
+                    {otpError && (
+                      <p className="text-red-600 text-sm mt-3 text-center">{otpError}</p>
+                    )}
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+                    <p className="text-yellow-800 text-sm text-center">
+                      ⚠️ <strong>Important:</strong> Only complete delivery after confirming you have handed over the order to <strong>{otpDeliveryData.customerName}</strong>
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={closeOtpModal}
+                      disabled={isVerifying}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={otp.length !== 4 || isVerifying}
+                      className={`flex-1 ${
+                        otp.length === 4 && !isVerifying
+                          ? 'bg-green-600 hover:bg-green-700'
+                          : 'bg-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      {isVerifying ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Verifying...
+                        </>
+                      ) : (
+                        'Complete Delivery'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Important Notice */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
+            <p className="text-yellow-800 text-sm text-center">
+              🔒 <strong>Important:</strong> Always ask customers for their 4-digit OTP before marking orders as delivered. 
+              This ensures secure delivery verification.
+            </p>
+          </div>
         </div>
       </div>
     </div>

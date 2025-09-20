@@ -3,10 +3,17 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-
+import { useNavigate } from "react-router";
 const ShopCard = ({ shop }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/shop/${shop._id}`);
+  };
+  if (!shop) return null;
+
   return (
-    <Card className="w-[220px] rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl">
+    <Card onClick={handleClick} className="w-[220px] rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl">
       <div className="relative overflow-hidden">
         <img
           src={shop.image}

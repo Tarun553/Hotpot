@@ -23,6 +23,7 @@ import useShopOrders from "./hooks/useShopOrders";
 import useUpdateLocation from "./hooks/useUpdateLocation";
 import DeliveryBoyDashboard from "./pages/DeliveryBoyDashboard";
 import DeliveryBoySetup from "./pages/DeliveryBoySetup";
+import ParticularShop from "./components/ParticularShop";
 // Access the server URL from environment variables
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
 
@@ -57,6 +58,7 @@ const App = () => {
         {/* delivery boy routes */}
         <Route path="/delivery-dashboard" element={user?.role === 'deliveryBoy' ? <DeliveryBoyDashboard /> : <Navigate to="/login" />} />
         <Route path="/delivery-setup" element={user?.role === 'deliveryBoy' ? <DeliveryBoySetup /> : <Navigate to="/login" />} />
+        <Route path="/shop/:id" element={user ? <ParticularShop /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );

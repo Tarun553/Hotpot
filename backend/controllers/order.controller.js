@@ -558,6 +558,11 @@ export const getMyDeliveries = async (req, res) => {
       }
     })
     .populate("shop", "name address phone")
+    .populate({
+      path: "assignedTo",
+      model: "User",
+      select: "fullName mobile location"
+    })
     .sort({ assignedAt: -1 });
 
     res.json(myDeliveries);

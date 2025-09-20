@@ -8,6 +8,7 @@ import DeliveryBoyNavbar from '../components/DeliveryBoyNavbar';
 import { MapPin, Clock, Package, DollarSign, Phone, User, Truck, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { serverUrl } from '../App';
+import DeliveryTrackingMap from '../components/DeliveryTrackingMap';
 
 const DeliveryBoyDashboard = () => {
   const {
@@ -272,6 +273,7 @@ const DeliveryBoyDashboard = () => {
                             <Clock className="w-4 h-4" /> Accepted: {formatTime(delivery.assignedAt)}
                           </span>
                         </div>
+                        <DeliveryTrackingMap delivery={delivery} />
 
                         <div className="flex gap-2">
                           <Button

@@ -611,3 +611,96 @@ export const completeDelivery = async (req, res) => {
     res.status(500).json({ message: "Failed to complete delivery", error: error.message });
   }
 };
+
+// api/orders/:orderId/track
+export const trackOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.userId;
+    const order = await Order.findOne({ _id: orderId, user: userId })
+      .populate('user', 'name email phone')
+      .populate({
+        path: 'shopOrder',
+        populate: [
+          { path: 'shop', select: 'name address phone' },
+          { path: 'owner', select: 'name email' },
+          { path: 'shopOrderItems.item', select: 'name price image category foodType' }
+        ]
+      });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    res.json({ order });
+  } catch (error) {
+    console.error("Track order error:", error);
+    res.status(500).json({ message: "Failed to track order", error: error.message });
+  }
+};
+
+// Live tracking endpoint for user to track delivery boy
+export const getOrderTracking = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.userId;
+
+    // Find the order and ensure the user is authorized
+    const order = await Order.findOne({ _id: orderId, user: userId })
+      .populate({
+        path: 'shopOrder.shop',
+        select: 'name address',
+      });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found or not authorized' });
+    }
+
+    // Find delivery assignment for this order
+    const deliveryAssignment = await DeliveryAssignment.findOne({
+      order: orderId,
+      status: { $in: ['assigned', 'completed'] }
+    }).populate({
+      path: 'assignedTo',
+      model: 'User',
+      select: 'fullName email mobile location',
+    });
+
+    if (!deliveryAssignment) {
+      return res.status(404).json({ 
+        message: 'No delivery assignment found for this order',
+        order: {
+          status: order.shopOrder[0]?.status || 'pending',
+          deliveryAddress: order.deliveryAddress
+        }
+      });
+    }
+
+    const deliveryBoy = deliveryAssignment.assignedTo;
+
+    if (!deliveryBoy) {
+      return res.status(404).json({ message: 'Delivery boy not found' });
+    }
+
+    // Get shop order status
+    const shopOrder = order.shopOrder.find(so => so._id.toString() === deliveryAssignment.shopOrderId?.toString()) || order.shopOrder[0];
+
+    // Prepare tracking info
+    const trackingInfo = {
+      deliveryBoy: {
+        name: deliveryBoy.fullName,
+        mobile: deliveryBoy.mobile,
+        location: deliveryBoy.location || null,
+      },
+      status: shopOrder?.status || 'pending',
+      statusHistory: shopOrder?.statusHistory || [],
+      deliveryAddress: order.deliveryAddress,
+      shop: shopOrder?.shop || null,
+      updatedAt: deliveryAssignment.updatedAt,
+      assignmentStatus: deliveryAssignment.status
+    };
+
+    return res.json(trackingInfo);
+  } catch (error) {
+    console.error('Get order tracking error:', error);
+    res.status(500).json({ message: 'Failed to get order tracking', error: error.message });
+  }
+};

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ const orderStatuses = [
 
 const MyOrders = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { myOrders = [], shopOrders = [], userData } = useSelector(
     (state) => state.user
   );
@@ -226,6 +228,17 @@ const MyOrders = () => {
                   ))
                 )}
               </ul>
+            </div>
+
+            {/* Track Order Button for Users */}
+            <div className="mt-4 flex justify-end">
+              <Button
+                onClick={() => navigate(`/track-order/${order._id}`)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                disabled={!order.shopOrder.some(so => ['preparing', 'on the way'].includes(so.status))}
+              >
+                📍 Track Order
+              </Button>
             </div>
           </div>
         )}

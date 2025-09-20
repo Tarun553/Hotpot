@@ -178,10 +178,10 @@ const DeliveryBoySetup = () => {
       <div className="pt-20 pb-8 px-4">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-lg">
-            <CardHeader className="text-center bg-blue-50">
+            <CardHeader className="text-center bg-orange-50">
               <div className="flex items-center justify-center space-x-2 mb-2">
-                <Truck className="h-8 w-8 text-blue-600" />
-                <CardTitle className="text-2xl font-bold text-blue-900">
+                <Truck className="h-8 w-8 text-orange-600" />
+                <CardTitle className="text-2xl font-bold text-orange-900">
                   Complete Your Delivery Profile
                 </CardTitle>
               </div>
@@ -196,7 +196,7 @@ const DeliveryBoySetup = () => {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <MapPin className="h-5 w-5 text-blue-600" />
+                      <MapPin className="h-5 w-5 text-orange-600" />
                       <span className="font-medium">Location Status</span>
                     </div>
                     <div className={`font-medium ${getLocationStatusColor()}`}>
@@ -354,7 +354,7 @@ const DeliveryBoySetup = () => {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                     />
                     {formData.profileImage && (
                       <p className="text-sm text-green-600">
@@ -369,7 +369,7 @@ const DeliveryBoySetup = () => {
                   <Button
                     type="submit"
                     disabled={loading || locationStatus !== 'success'}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 text-lg font-semibold"
                   >
                     {loading ? (
                       <>

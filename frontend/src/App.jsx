@@ -17,6 +17,7 @@ import useGetAllShops from "./hooks/useGetAllShops";
 import useGetShopByCity from "./hooks/useGetShopByCity";
 import OrderPlaced from "./pages/OrderPlaced";
 import MyOrders from "./pages/MyOrders";
+import TrackOrder from "./pages/TrackOrder";
 import useGetMyOrders from "./hooks/useGetMyOrders";
 import useShopOrders from "./hooks/useShopOrders";
 import useUpdateLocation from "./hooks/useUpdateLocation";
@@ -51,6 +52,8 @@ const App = () => {
         <Route path="/order-placed" element={user ? <OrderPlaced /> : <Navigate to="/login" />} />
         {/* my order  route */}
         <Route path="/my-orders" element={user ? <MyOrders /> : <Navigate to="/login" />} />
+        {/* track order route */}
+        <Route path="/track-order/:orderId" element={user ? <TrackOrder /> : <Navigate to="/login" />} />
         {/* delivery boy routes */}
         <Route path="/delivery-dashboard" element={user?.role === 'deliveryBoy' ? <DeliveryBoyDashboard /> : <Navigate to="/login" />} />
         <Route path="/delivery-setup" element={user?.role === 'deliveryBoy' ? <DeliveryBoySetup /> : <Navigate to="/login" />} />

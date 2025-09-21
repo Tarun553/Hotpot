@@ -1,11 +1,19 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
-const CategoryCard = ({ category, image, onClick }) => {
+const CategoryCard = ({ category, image }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    // Navigate to category page
+    navigate(`/category/${category}`);
+  };
+
   return (
     <Card
-      onClick={onClick}
       className="group flex flex-col items-center justify-between w-44 h-64 cursor-pointer rounded-2xl border border-orange-200 bg-white shadow-sm transition-all hover:shadow-lg hover:border-orange-300"
+      onClick={handleClick}
     >
       <CardContent className="flex flex-col items-center justify-center p-4 w-full h-full">
         <div className="w-28 h-28 rounded-xl overflow-hidden shadow-sm mb-4">

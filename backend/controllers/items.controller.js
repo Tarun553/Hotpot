@@ -145,3 +145,27 @@ export const rateItem = async (req, res) => {
     res.status(500).json({ message: "Error rating item", error: error.message });
   }
 };
+
+export const getItemByCategory = async (req, res) => {
+    try {
+        const { category } = req.params;
+        if (!category || typeof category !== "string") {
+            return res.status(400).json({ message: "Category is required and must be a string" });
+        }
+
+        let items;
+        if (category.toLowerCase() === "all") {
+            items = await Item.find().populate('shop', '-owner');
+        } else {
+            items = await Item.find({ category }).populate('shop', '-owner');
+        }
+
+        if (!items || items.length === 0) {
+            return res.status(404).json({ message: "No items found for this category" });
+        }
+
+        res.status(200).json({ items });
+    } catch (error) {
+        res.status(500).json({ message: "get item by category error", error: error.message });
+    }
+};

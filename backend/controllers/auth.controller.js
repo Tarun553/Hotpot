@@ -288,7 +288,14 @@ export const signUp = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ fullName, email, password: hashedPassword, role, mobile });
+    let location = undefined;
+    if (role === "deliveryBoy" || role === "owner" || role === "user") {
+      // Use provided coordinates or default to [0, 0]
+      const longitude = req.body.longitude ?? 0;
+      const latitude = req.body.latitude ?? 0;
+      location = { type: "Point", coordinates: [longitude, latitude] };
+    }
+    const newUser = new User({ fullName, email, password: hashedPassword, role, mobile, ...(location && { location }) });
     await newUser.save();
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -439,12 +446,20 @@ export const GoogleAuth = async (req, res) => {
     }
 
     const randomPassword = Math.random().toString(36).slice(-8);
+    let location = undefined;
+    if (role === "deliveryBoy") {
+      // Use provided coordinates or default to [0, 0]
+      const longitude = req.body.longitude ?? 0;
+      const latitude = req.body.latitude ?? 0;
+      location = { type: "Point", coordinates: [longitude, latitude] };
+    }
     user = new User({
       fullName,
       email,
       role,
       mobile,
       password: await bcrypt.hash(randomPassword, 10),
+      ...(location && { location })
     });
     await user.save();
 

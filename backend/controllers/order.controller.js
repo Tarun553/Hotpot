@@ -2,6 +2,75 @@ import Order from "../models/order.model.js";
 import Cart from "../models/cart.model.js";
 import Item from "../models/items.model.js";
 import Shop from "../models/shop.model.js";
+import User from "../models/user.model.js";
+import DeliveryAssignment from "../models/deliveryAssignment.model.js";
+
+// Helper function to find delivery boys within 5km radius
+const findNearbyDeliveryBoys = async (latitude, longitude, maxDistance = 5000) => {
+  try {
+    console.log(`🔍 Searching for delivery boys within ${maxDistance}m of coordinates: ${latitude}, ${longitude}`);
+    
+    const deliveryBoys = await User.find({
+      role: "deliveryBoy",
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [longitude, latitude], // MongoDB expects [longitude, latitude]
+          },
+          $maxDistance: maxDistance, // Distance in meters (5km = 5000m)
+        },
+      },
+    }).select("fullName email mobile location");
+
+    console.log(`📍 Found ${deliveryBoys.length} delivery boys within 5km:`);
+    deliveryBoys.forEach(db => {
+      console.log(`- ${db.fullName} (${db.email}) at [${db.location.coordinates}]`);
+    });
+
+    return deliveryBoys;
+  } catch (error) {
+    console.error("❌ Error finding nearby delivery boys:", error);
+    return [];
+  }
+};
+
+// Helper function to create delivery assignment
+const createDeliveryAssignment = async (orderId, shopId, shopOrderId, deliveryAddress) => {
+  try {
+    console.log(`🎯 Creating delivery assignment for order ${orderId}`);
+    
+    // Find nearby delivery boys
+    const nearbyDeliveryBoys = await findNearbyDeliveryBoys(
+      deliveryAddress.latitude,
+      deliveryAddress.longitude
+    );
+
+    if (nearbyDeliveryBoys.length === 0) {
+      console.log("❌ No delivery boys found within 5km radius");
+      return null;
+    }
+
+    // Create delivery assignment and broadcast to nearby delivery boys
+    const deliveryAssignment = new DeliveryAssignment({
+      order: orderId,
+      shop: shopId,
+      shopOrderId: shopOrderId,
+      broadcastedTo: nearbyDeliveryBoys.map(db => db._id),
+      status: "broadcasted",
+    });
+
+    await deliveryAssignment.save();
+    
+    console.log(`✅ Order broadcasted to ${nearbyDeliveryBoys.length} delivery boys within 5km`);
+    console.log(`📋 Assignment ID: ${deliveryAssignment._id}`);
+    
+    return deliveryAssignment;
+  } catch (error) {
+    console.error("❌ Error creating delivery assignment:", error);
+    return null;
+  }
+};
 
 // Place Order - Groups cart items by shop and creates orders
 export const placeOrder = async (req, res) => {
@@ -245,62 +314,459 @@ export const getShopOrders = async (req, res) => {
 };
 
 
-// // Get Orders (for both user & shop owner)
-// export const getOrders = async (req, res) => {
-//   try {
-//     const userId = req.userId;
-//     const role = req.user.role; // make sure you set this in auth middleware
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, shopId } = req.params;
+    const { status } = req.body;
+    const ownerId = req.userId;
+    console.log("Owner ID:", ownerId);
+    console.log("Order ID:", orderId);
+    console.log("New Status:", status);
 
-//     let orders;
+    // ✅ Validate status
+    const validStatuses = [
+      "pending",
+      "accepted",
+      "preparing",
+      "on the way",
+      "delivered",
+      "cancelled",
+    ];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
 
-//     if (role === "user") {
-//       // Normal user → show their own orders
-//       orders = await Order.find({ user: userId })
-//         .populate({
-//           path: "shopOrder.shop",
-//           select: "name image",
-//         })
-//         .populate({
-//           path: "shopOrder.shopOrderItems.item",
-//           select: "name price image category foodType",
-//         })
-//         .sort({ createdAt: -1 });
+    // First, get the order to access delivery address
+    const existingOrder = await Order.findOne({ 
+      _id: orderId, 
+      "shopOrder.owner": ownerId 
+    });
 
-//       return res.json(orders);
-//     } 
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Order not found or not authorized" });
+    }
+
+    // Find the specific shop order
+    const shopOrder = existingOrder.shopOrder.find(so => so.owner.toString() === ownerId.toString());
+    if (!shopOrder) {
+      return res.status(404).json({ message: "Shop order not found" });
+    }
+
+    // ✅ Update the shopOrder status + push into statusHistory in one go
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, "shopOrder.owner": ownerId },
+      {
+        $set: { "shopOrder.$.status": status },
+        $push: {
+          "shopOrder.$.statusHistory": { status, updatedAt: new Date() },
+        },
+      },
+      { new: true } // return updated doc
+    )
+      .populate("user", "name email phone")
+      .populate("shopOrder.shop", "name image address phone")
+      .populate("shopOrder.owner", "name email")
+      .populate(
+        "shopOrder.shopOrderItems.item",
+        "name price image category foodType"
+      );
+
+    // ✅ Auto-assign delivery boys when status changes to "preparing"
+    if (status === "preparing" && existingOrder.deliveryAddress) {
+      console.log(`🚚 Order status changed to 'preparing' - attempting delivery assignment`);
+      console.log(`📍 Delivery address: ${JSON.stringify(existingOrder.deliveryAddress)}`);
+      
+      try {
+        // Check if delivery assignment already exists for this shop order
+        const existingAssignment = await DeliveryAssignment.findOne({
+          order: orderId,
+          shop: shopId,
+          shopOrderId: shopOrder._id
+        });
+
+        if (!existingAssignment) {
+          console.log("🔄 Creating new delivery assignment for order:", orderId);
+          
+          const deliveryAssignment = await createDeliveryAssignment(
+            orderId,
+            shopId,
+            shopOrder._id,
+            existingOrder.deliveryAddress
+          );
+
+          if (deliveryAssignment) {
+            // Update the shop order with the delivery assignment reference
+            await Order.findOneAndUpdate(
+              { 
+                _id: orderId, 
+                "shopOrder._id": shopOrder._id 
+              },
+              {
+                $set: { "shopOrder.$.assigment": deliveryAssignment._id },
+              }
+            );
+            
+            console.log("✅ Delivery assignment created and linked to order");
+          } else {
+            console.log("⚠️ Failed to create delivery assignment - no delivery boys found within 5km");
+          }
+        } else {
+          console.log("ℹ️ Delivery assignment already exists for this order");
+        }
+      } catch (assignmentError) {
+        console.error("❌ Error in delivery assignment:", assignmentError);
+        // Don't fail the order status update if delivery assignment fails
+      }
+    } else if (status === "preparing") {
+      console.log("⚠️ Order status is 'preparing' but no delivery address found");
+    }
+
+    return res.json({ 
+      message: "Order status updated", 
+      order,
+      ...(status === "preparing" ? { deliveryAssignmentAttempted: true } : {})
+    });
+  } catch (error) {
+    console.error("Update order status error:", error);
+    res.status(500).json({
+      message: "Failed to update order status",
+      error: error.message,
+    });
+  }
+};
+
+
+export const rate = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { ratings } = req.body; // Expecting an array of { itemId, rating, review }
+    const userId = req.userId;
+    if (!ratings || !Array.isArray(ratings) || ratings.length === 0) {
+      return res.status(400).json({ message: "Ratings are required" });
+    }
+    // Verify order belongs to user
+    const order = await Order.findOne({ _id: orderId, user: userId });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    // Update each item's ratings
+    for (const r of ratings) {
+      const { itemId, rating, review } = r;
+      if (!itemId || !rating) continue;
+      await Item.findByIdAndUpdate(itemId, {
+        $push: { ratings: { user: userId, rating, review } }
+      });
+    }
+    res.json({ message: "Ratings submitted successfully" });
+  } catch (error) {
+    console.error("Submit ratings error:", error);
+    res.status(500).json({ message: "Failed to submit ratings", error: error.message });
+  }
+};
+
+// ✅ Get available delivery assignments for delivery boys
+export const getAvailableDeliveries = async (req, res) => {
+  try {
+    const deliveryBoyId = req.userId;
+
+    // Find delivery assignments that were broadcasted to this delivery boy
+    const availableDeliveries = await DeliveryAssignment.find({
+      broadcastedTo: deliveryBoyId,
+      status: "broadcasted",
+      assignedTo: null
+    })
+    .populate({
+      path: "order",
+      select: "deliveryAddress totalAmount createdAt",
+      populate: {
+        path: "user",
+        select: "fullName mobile"
+      }
+    })
+    .populate("shop", "name address phone")
+    .sort({ assignedAt: -1 });
+
+    res.json(availableDeliveries);
+  } catch (error) {
+    console.error("Get available deliveries error:", error);
+    res.status(500).json({ message: "Failed to fetch available deliveries", error: error.message });
+  }
+};
+
+// ✅ Accept delivery assignment
+export const acceptDelivery = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const deliveryBoyId = req.userId;
+
+    // Check if delivery boy was broadcasted to and assignment is still available
+    const assignment = await DeliveryAssignment.findOne({
+      _id: assignmentId,
+      broadcastedTo: deliveryBoyId,
+      status: "broadcasted",
+      assignedTo: null
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Delivery assignment not found or already taken" });
+    }
+
+    // Assign delivery to this delivery boy
+    assignment.assignedTo = deliveryBoyId;
+    assignment.status = "assigned";
+    await assignment.save();
+
+    // Update the shop order status to "on the way"
+    await Order.findOneAndUpdate(
+      { 
+        _id: assignment.order,
+        "shopOrder._id": assignment.shopOrderId 
+      },
+      {
+        $set: { "shopOrder.$.status": "on the way" },
+        $push: {
+          "shopOrder.$.statusHistory": { 
+            status: "on the way", 
+            updatedAt: new Date() 
+          },
+        },
+      }
+    );
+
+    res.json({ message: "Delivery accepted successfully", assignment });
+  } catch (error) {
+    console.error("Accept delivery error:", error);
+    res.status(500).json({ message: "Failed to accept delivery", error: error.message });
+  }
+};
+
+// ✅ Get assigned deliveries for delivery boy
+export const getMyDeliveries = async (req, res) => {
+  try {
+    const deliveryBoyId = req.userId;
+
+    const myDeliveries = await DeliveryAssignment.find({
+      assignedTo: deliveryBoyId,
+      status: { $in: ["assigned"] }
+    })
+    .populate({
+      path: "order",
+      select: "deliveryAddress totalAmount createdAt",
+      populate: {
+        path: "user",
+        select: "fullName mobile"
+      }
+    })
+    .populate("shop", "name address phone")
+    .populate({
+      path: "assignedTo",
+      model: "User",
+      select: "fullName mobile location"
+    })
+    .sort({ assignedAt: -1 });
+
+    res.json(myDeliveries);
+  } catch (error) {
+    console.error("Get my deliveries error:", error);
+    res.status(500).json({ message: "Failed to fetch my deliveries", error: error.message });
+  }
+};
+
+// ✅ Complete delivery with OTP verification
+export const completeDelivery = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const { otp } = req.body;
+    const deliveryBoyId = req.userId;
+
+    console.log(`🔒 Delivery boy ${deliveryBoyId} attempting to complete assignment ${assignmentId} with OTP: ${otp}`);
+
+    if (!otp || otp.length !== 4) {
+      return res.status(400).json({ message: "Please provide a valid 4-digit OTP" });
+    }
+
+    // Find the delivery assignment
+    const assignment = await DeliveryAssignment.findOne({
+      _id: assignmentId,
+      assignedTo: deliveryBoyId,
+      status: "assigned"
+    }).populate('order');
+
+    if (!assignment) {
+      return res.status(404).json({ message: "Delivery assignment not found or not assigned to you" });
+    }
+
+    // Find the order
+    const order = await Order.findById(assignment.order._id);
     
-//     if (role === "owner") {
-//       // Shop owner → show only orders of their shops
-//       orders = await Order.find({ "shopOrder.owner": userId })
-//         .populate("user", "name email phone")
-//         .populate({
-//           path: "shopOrder.shop",
-//           select: "name image",
-//         })
-//         .populate({
-//           path: "shopOrder.shopOrderItems.item",
-//           select: "name price image category foodType",
-//         })
-//         .sort({ createdAt: -1 });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
-//       // Filter shopOrder array to only this owner's shops
-//       const filteredOrders = orders
-//         .map((order) => ({
-//           ...order.toObject(),
-//           shopOrder: order.shopOrder.filter(
-//             (shopOrder) => shopOrder.owner.toString() === userId.toString()
-//           ),
-//         }))
-//         .filter((order) => order.shopOrder.length > 0);
+    // Verify OTP
+    if (order.deliveryOtp !== otp) {
+      console.log(`❌ Invalid OTP provided. Expected: ${order.deliveryOtp}, Received: ${otp}`);
+      return res.status(400).json({ message: "Invalid OTP. Please ask the customer for the correct OTP." });
+    }
 
-//       return res.json(filteredOrders);
-//     }
+    // Check if OTP is not expired (valid for 2 hours for delivery boys)
+    const otpAge = new Date() - new Date(order.otpGeneratedAt);
+    if (otpAge > 2 * 60 * 60 * 1000) { // 2 hours in milliseconds
+      return res.status(400).json({ message: "OTP has expired. Please contact support." });
+    }
 
-//     // if role is something else
-//     return res.status(403).json({ message: "Unauthorized role" });
+    // Update order status to delivered
+    for (let shopOrder of order.shopOrder) {
+      shopOrder.status = "delivered";
+      shopOrder.statusHistory.push({
+        status: "delivered",
+        updatedAt: new Date()
+      });
+    }
 
-//   } catch (error) {
-//     console.error("Get orders error:", error);
-//     res.status(500).json({ message: "Failed to fetch orders", error: error.message });
-//   }
-// };
+    order.orderStatus = "delivered";
+    order.deliveredAt = new Date();
+    order.deliveryOtp = null; // Clear OTP after successful verification
+    order.otpGeneratedAt = null;
+
+    await order.save();
+
+    // Update delivery assignment
+    assignment.status = "completed";
+    assignment.completedAt = new Date();
+    await assignment.save();
+
+    // Update delivery boy's stats (optional)
+    await User.findByIdAndUpdate(deliveryBoyId, {
+      $inc: { 
+        'deliveryStats.totalDeliveries': 1,
+        'deliveryStats.earnings': order.deliveryFee || 40
+      }
+    });
+
+    console.log(`✅ Delivery completed successfully by ${deliveryBoyId} for order ${order._id}`);
+    
+    res.json({ 
+      message: "Delivery completed successfully! 🎉",
+      assignment: assignment,
+      order: {
+        _id: order._id,
+        status: order.orderStatus,
+        deliveredAt: order.deliveredAt
+      }
+    });
+  } catch (error) {
+    console.error("Complete delivery error:", error);
+    res.status(500).json({ message: "Failed to complete delivery", error: error.message });
+  }
+};
+
+// api/orders/:orderId/track
+export const trackOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.userId;
+    const order = await Order.findOne({ _id: orderId, user: userId })
+      .populate('user', 'name email phone')
+      .populate({
+        path: 'shopOrder',
+        populate: [
+          { path: 'shop', select: 'name address phone' },
+          { path: 'owner', select: 'name email' },
+          { path: 'shopOrderItems.item', select: 'name price image category foodType' }
+        ]
+      });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    res.json({ order });
+  } catch (error) {
+    console.error("Track order error:", error);
+    res.status(500).json({ message: "Failed to track order", error: error.message });
+  }
+};
+
+// Live tracking endpoint for user to track delivery boy
+export const getOrderTracking = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.userId;
+
+    console.log(`📍 Fetching tracking for order: ${orderId}, user: ${userId}`);
+
+    // Find the order and ensure the user is authorized
+    const order = await Order.findOne({ _id: orderId, user: userId })
+      .populate({
+        path: 'shopOrder.shop',
+        select: 'name address',
+      });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found or not authorized' });
+    }
+
+    // Auto-generate OTP if order is "on the way" and no OTP exists
+    if (order.shopOrder.some(so => so.status === 'on the way') && !order.deliveryOtp) {
+      const deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      order.deliveryOtp = deliveryOtp;
+      order.otpGeneratedAt = new Date();
+      await order.save();
+      console.log(`🔒 Auto-generated delivery OTP ${deliveryOtp} for order ${orderId}`);
+    }
+
+    // Find delivery assignment for this order
+    const deliveryAssignment = await DeliveryAssignment.findOne({
+      order: orderId,
+      status: { $in: ['assigned', 'completed'] }
+    }).populate({
+      path: 'assignedTo',
+      model: 'User',
+      select: 'fullName email mobile location',
+    });
+
+    if (!deliveryAssignment) {
+      return res.status(404).json({ 
+        message: 'No delivery assignment found for this order',
+        order: {
+          status: order.shopOrder[0]?.status || 'pending',
+          deliveryAddress: order.deliveryAddress,
+          deliveryOtp: order.deliveryOtp,
+          otpGeneratedAt: order.otpGeneratedAt
+        }
+      });
+    }
+
+    const deliveryBoy = deliveryAssignment.assignedTo;
+
+    if (!deliveryBoy) {
+      return res.status(404).json({ message: 'Delivery boy not found' });
+    }
+
+    // Get shop order status
+    const shopOrder = order.shopOrder.find(so => so._id.toString() === deliveryAssignment.shopOrderId?.toString()) || order.shopOrder[0];
+
+    // Prepare tracking info
+    const trackingInfo = {
+      deliveryBoy: {
+        name: deliveryBoy.fullName,
+        mobile: deliveryBoy.mobile,
+        location: deliveryBoy.location || null,
+      },
+      status: shopOrder?.status || 'pending',
+      statusHistory: shopOrder?.statusHistory || [],
+      deliveryAddress: order.deliveryAddress,
+      shop: shopOrder?.shop || null,
+      updatedAt: deliveryAssignment.updatedAt,
+      assignmentStatus: deliveryAssignment.status,
+      deliveryOtp: order.deliveryOtp, // Include OTP in response
+      otpGeneratedAt: order.otpGeneratedAt,
+      deliveredAt: order.deliveredAt
+    };
+
+    console.log(`📦 Tracking response:`, JSON.stringify(trackingInfo, null, 2));
+    return res.json(trackingInfo);
+  } catch (error) {
+    console.error('Get order tracking error:', error);
+    res.status(500).json({ message: 'Failed to get order tracking', error: error.message });
+  }
+};

@@ -13,8 +13,10 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (userData && token) {
+      console.log('Attempting to connect to socket with token:', !!token);
       const newSocket = io('https://hotpot-3y4y.onrender.com', {
-        auth: { token }
+        auth: { token },
+        transports: ['websocket', 'polling']
       });
 
       newSocket.on('connect', () => {
@@ -27,6 +29,15 @@ export const SocketProvider = ({ children }) => {
         setIsConnected(false);
       });
 
+      newSocket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error.message);
+        setIsConnected(false);
+      });
+
+      newSocket.on('error', (error) => {
+        console.error('Socket error:', error);
+      });
+
       setSocket(newSocket);
 
       return () => {
@@ -34,6 +45,10 @@ export const SocketProvider = ({ children }) => {
         setSocket(null);
         setIsConnected(false);
       };
+    } else {
+      console.log('No user data or token available for socket connection');
+      setSocket(null);
+      setIsConnected(false);
     }
   }, [userData, token]);
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { serverUrl } from '../App';
+import { serverUrl } from '../utils/constants';
 
 const ApiTester = () => {
   const [result, setResult] = useState('');

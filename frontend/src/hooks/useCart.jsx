@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { serverUrl } from "../App";
+import { serverUrl } from "../utils/constants";
 import { addToCart, removeToCart, updateToCart } from "../redux/userSlice";
 import { setCartItems } from "../redux/userSlice";
 import toast from "react-hot-toast";

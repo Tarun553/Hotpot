@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc"; // ✅ Google icon
 import axios from "axios";
-import { serverUrl } from "../App"; // Import the serverUrl
+import { serverUrl } from "../utils/constants"; // Import the serverUrl
 import { auth } from "../../firebase";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { ClipLoader } from "react-spinners";

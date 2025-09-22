@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setShopOrders } from "../redux/userSlice";
-import { serverUrl } from "../App";
+import { serverUrl } from "../utils/constants";
 import toast from "react-hot-toast";
 
 const useShopOrders = () => {

@@ -11,7 +11,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { serverUrl } from "../App";
+import { serverUrl } from "../utils/constants";
 import { setUserData } from "@/redux/userSlice";
 
 const DeliveryBoyNavbar = () => {

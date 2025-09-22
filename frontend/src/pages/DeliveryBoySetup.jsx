@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Truck, User, Phone, FileText, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { serverUrl } from '../App';
+import { serverUrl } from '../utils/constants';
 import { setUserData } from '../redux/userSlice';
 import DeliveryBoyNavbar from '../components/DeliveryBoyNavbar';
 

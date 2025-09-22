@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { serverUrl } from "../App"; // ✅ same serverUrl as login
+import { serverUrl } from "../utils/constants"; // ✅ same serverUrl as login
 import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import toast from "react-hot-toast";

@@ -12,7 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FcGoogle } from "react-icons/fc"; // ✅ Google icon
 import axios from "axios";
-import { serverUrl } from "../App"; // Import the serverUrl
+import { serverUrl } from "../utils/constants"; // Import the serverUrl
 import { auth, provider } from "../../firebase";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { ClipLoader } from "react-spinners";

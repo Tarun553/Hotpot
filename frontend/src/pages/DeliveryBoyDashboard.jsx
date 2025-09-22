@@ -11,7 +11,7 @@ import useDeliveryBoy from '../hooks/useDeliveryBoy';
 import DeliveryBoyNavbar from '../components/DeliveryBoyNavbar';
 import { MapPin, Clock, Package, DollarSign, Phone, User, Truck, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { serverUrl } from '../App';
+import { serverUrl } from '../utils/constants';
 import DeliveryTrackingMap from '../components/DeliveryTrackingMap';
 
 const DeliveryBoyDashboard = () => {

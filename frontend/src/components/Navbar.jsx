@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
-import { serverUrl } from "../App";
+import { serverUrl } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
 import { setUserData } from "@/redux/userSlice";
 

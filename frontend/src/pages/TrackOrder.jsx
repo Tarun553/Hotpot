@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GoogleMap, Marker, useJsApiLoader, InfoWindow, Polyline } from "@react-google-maps/api";
-import { serverUrl } from "../App";
+import { serverUrl } from "../utils/constants";
 import { useSocket } from "../context/SocketContext";
 
 const DEFAULT_POSITION = { lat: 28.6139, lng: 77.2090 }; // fallback to Delhi

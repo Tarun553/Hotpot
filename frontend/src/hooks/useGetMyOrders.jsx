@@ -1,5 +1,5 @@
 import axios from "axios";
-import { serverUrl } from "../App";
+import { serverUrl } from "../utils/constants";
 import { useDispatch } from "react-redux";
 import { setMyOrders } from "../redux/userSlice";
 import { useEffect, useState } from "react";

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
-import { serverUrl } from "../App";
+import { serverUrl } from "../utils/constants";
 import toast from "react-hot-toast";
 import { setOrderStatus } from "../redux/userSlice";
 import StatusTimeline from "../components/StatusTimeline";

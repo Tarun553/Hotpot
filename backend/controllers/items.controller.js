@@ -4,15 +4,37 @@ import uploadOnCloudinary from "../utils/cloudnary.js";
 
 export const addItem = async (req, res) => {
     try {
+        console.log("Add item request received");
+        console.log("Request body:", req.body);
+        console.log("Request file:", req.file);
+        console.log("User ID:", req.userId);
+        
         const { name, price, category, foodType } = req.body;
+        
+        // Validate required fields
+        if (!name || !price || !category || !foodType) {
+            return res.status(400).json({ 
+                message: "Missing required fields", 
+                received: { name, price, category, foodType } 
+            });
+        }
+        
         let image;
         if (req.file) {
+            console.log("Uploading image to Cloudinary...");
             image = await uploadOnCloudinary(req.file.path);
+            console.log("Image uploaded:", image);
         }
+        
+        console.log("Finding shop for user:", req.userId);
         let shop = await Shop.findOne({ owner: req.userId });
         if (!shop) {
+            console.log("Shop not found for user:", req.userId);
             return res.status(404).json({ message: "Shop not found" });
         }
+        console.log("Shop found:", shop._id);
+        
+        console.log("Creating item...");
         const item = await Item.create({
             name,
             image,
@@ -21,13 +43,20 @@ export const addItem = async (req, res) => {
             foodType,
             shop: shop._id
         });
+        console.log("Item created:", item._id);
+        
         shop.items.push(item._id);
         await shop.save();
+        console.log("Shop updated with new item");
+        
         shop = await Shop.findById(shop._id)
           .populate('items')
           .populate('owner', '-password');
+          
+        console.log("Sending response...");
         res.status(201).json(shop);
     } catch (error) {
+        console.error("Add item error:", error);
         res.status(500).json({ message: "add items error", error: error.message });
     }
 }

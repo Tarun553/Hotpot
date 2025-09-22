@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { FaUtensils } from "react-icons/fa";
 import axios from "axios";
 import { serverUrl } from "../App";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setMyShopData } from "../redux/ownerSlice";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +29,8 @@ const categories = [
 
 const AddFoodItem = ({ onSuccess }) => {
   const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const { token } = useSelector(state => state.user);
   const [form, setForm] = useState({
     name: "",
     price: 0,
@@ -59,23 +60,38 @@ const AddFoodItem = ({ onSuccess }) => {
     setLoading(true);
     setError("");
     try {
-      // TODO: Replace with your API call
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("price", form.price);
       formData.append("category", form.category);
       formData.append("foodType", form.type);
       if (imageFile) formData.append("image", imageFile);
-      const result = await axios.post(`${serverUrl}/api/items/add-item`, formData, { withCredentials: true });
-      console.log(result);
+      
+      const config = {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      };
+      
+      // Add Authorization header if token exists
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      
+      console.log("Submitting form with data:", form);
+      const result = await axios.post(`${serverUrl}/api/items/add-item`, formData, config);
+      console.log("Add item result:", result);
       dispatch(setMyShopData(result.data));
     
       if (onSuccess) onSuccess(form);
       toast.success("Food item added successfully!");
-      // navigate("/");
       navigate("/");
     } catch (err) {
-      setError("Failed to add food item");
+      console.error("Add item error:", err);
+      const errorMessage = err.response?.data?.message || "Failed to add food item";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

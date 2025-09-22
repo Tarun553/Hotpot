@@ -92,7 +92,7 @@ const useDeliveryBoy = () => {
       fetchAvailableDeliveries();
       fetchMyDeliveries();
     }
-  }, [userData, refreshKey]);
+  }, [userData, refreshKey, fetchAvailableDeliveries, fetchMyDeliveries]);
 
   // Auto-refresh every 30 seconds for available deliveries
   useEffect(() => {
@@ -103,7 +103,7 @@ const useDeliveryBoy = () => {
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [userData]);
+  }, [userData, fetchAvailableDeliveries]);
 
   return {
     availableDeliveries,

@@ -13,23 +13,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
-import { serverUrl } from "../App";
+import apiClient from "../utils/axios";
 import { useNavigate } from "react-router-dom";
-import { setUserData } from "@/redux/userSlice";
-
-import useCart from "../hooks/useCart";
+import { clearUserData } from "@/redux/userSlice";
+import toast from "react-hot-toast";
 
 
 const Navbar = () => {
 
 
   const searchInputRef = useRef();
-  const { getCartByUser } = useCart();
+  const { cartItems } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userData, city } = useSelector((state) => state.user);
-  const { cartItems } = useSelector((state) => state.user);
   // Calculate total quantity
   const totalQuantity = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
@@ -50,9 +47,10 @@ const Navbar = () => {
       setShowDropdown(true);
       const timeout = setTimeout(async () => {
         try {
-          const response = await axios.get(`${serverUrl}/api/user/search?q=${encodeURIComponent(searchTerm.trim())}`, { withCredentials: true });
+          const response = await apiClient.get(`/api/user/search?q=${encodeURIComponent(searchTerm.trim())}`);
           setSearchResults(response.data);
         } catch (error) {
+          console.error('Search error:', error);
           setSearchResults({ shops: [], items: [] });
         } finally {
           setIsSearching(false);
@@ -84,12 +82,15 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${serverUrl}/api/auth/logout`, {}, { withCredentials: true });
-      dispatch(setUserData(null));
+      await apiClient.post("/api/auth/logout");
+      dispatch(clearUserData());
+      toast.success("Logged out successfully");
       navigate("/login");
     } catch (err) {
-      // Optionally show error toast
       console.error("Logout failed", err);
+      // Clear local state anyway as backup
+      dispatch(clearUserData());
+      navigate("/login");
     }
   };
 

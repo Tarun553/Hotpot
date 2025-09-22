@@ -1,11 +1,9 @@
 import React from "react";
 import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
-import { useDispatch } from "react-redux";
 import useCart from "../hooks/useCart";
 
 const FoodCard = ({ item, shop }) => {
-  const { addItemToCart, getCartByUser } = useCart();
-  const dispatch = useDispatch();
+  const { addItemToCart } = useCart();
 
   // Function to render star ratings
   const renderStars = (rating, count) => {

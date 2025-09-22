@@ -1,55 +1,76 @@
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { serverUrl } from "../App";
-import { addToCart, removeToCart, updateToCart } from "../redux/userSlice";
 import { setCartItems } from "../redux/userSlice";
 import toast from "react-hot-toast";
-
+import apiClient from "../utils/axios";
+import { useState, useCallback } from "react";
 
 const useCart = () => {
   const dispatch = useDispatch();
   const { cartItems } = useSelector((state) => state.user);
+  const [loading, setLoading] = useState(false);
 
-  const addItemToCart = async (item) => {
+  const addItemToCart = useCallback(async (item) => {
+    setLoading(true);
     try {
-      const response = await axios.post(`${serverUrl}/api/cart/add`, item, { withCredentials: true });
+      const response = await apiClient.post("/api/cart/add", item);
       dispatch(setCartItems(response.data.items || response.data.cartItems || []));
       toast.success("Item added to cart");
     } catch (error) {
-      toast.error("Error adding item to cart");
+      console.error("Error adding item to cart:", error);
+      const message = error.response?.data?.message || "Error adding item to cart";
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [dispatch]);
 
-  const getCartByUser = async () => {
+  const getCartByUser = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await axios.get(`${serverUrl}/api/cart`, { withCredentials: true });
+      const response = await apiClient.get("/api/cart");
       dispatch(setCartItems(response.data.items || response.data.cartItems || []));
     } catch (error) {
-      toast.error("Error fetching cart");
+      console.error("Error fetching cart:", error);
+      // Don't show error toast for fetching cart as it might be expected (empty cart)
+      if (error.response?.status !== 404) {
+        toast.error("Error fetching cart");
+      }
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [dispatch]);
 
-  const removeItemFromCart = async (itemId) => {
+  const removeItemFromCart = useCallback(async (itemId) => {
+    setLoading(true);
     try {
-      const response = await axios.delete(`${serverUrl}/api/cart/remove/${itemId}`, { withCredentials: true });
+      const response = await apiClient.delete(`/api/cart/remove/${itemId}`);
       dispatch(setCartItems(response.data.items || response.data.cartItems || []));
       toast.success("Item removed from cart");
     } catch (error) {
-      toast.error("Error removing item from cart");
+      console.error("Error removing item from cart:", error);
+      const message = error.response?.data?.message || "Error removing item from cart";
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [dispatch]);
 
-  const updateItemInCart = async (itemId, quantity) => {
+  const updateItemInCart = useCallback(async (itemId, quantity) => {
+    setLoading(true);
     try {
-      const response = await axios.put(`${serverUrl}/api/cart/update`, { itemId, quantity }, { withCredentials: true });
+      const response = await apiClient.put("/api/cart/update", { itemId, quantity });
       dispatch(setCartItems(response.data.items || response.data.cartItems || []));
       toast.success("Cart updated");
     } catch (error) {
-      toast.error("Error updating cart");
+      console.error("Error updating cart:", error);
+      const message = error.response?.data?.message || "Error updating cart";
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [dispatch]);
 
-  return { cartItems, addItemToCart, removeItemFromCart, updateItemInCart, getCartByUser };
+  return { cartItems, addItemToCart, removeItemFromCart, updateItemInCart, getCartByUser, loading };
 };
 
 export default useCart;

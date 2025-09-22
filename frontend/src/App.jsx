@@ -4,6 +4,8 @@ import { useSelector } from "react-redux";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingSpinner from "./components/LoadingSpinner";
+import OfflineIndicator from "./components/OfflineIndicator";
+import AppInitializer from "./components/AppInitializer";
 import useGetCurrentUser from "./hooks/useGetCurrentUser";
 import useGetCity from "./hooks/useGetCity";
 import useGetMyShop from "./hooks/useGetMyShop";
@@ -36,8 +38,6 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 const App = () => {
-  const user = useSelector((state) => state.user.userData);
-
   // Initialize hooks
   useGetCurrentUser();
   useGetCity();
@@ -50,9 +50,11 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <Suspense fallback={<LoadingSpinner fullScreen />}>
-          <Routes>
+      <AppInitializer>
+        <OfflineIndicator />
+        <BrowserRouter>
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <Routes>
             {/* Public routes */}
             <Route 
               path="/login" 
@@ -195,6 +197,7 @@ const App = () => {
           </Routes>
         </Suspense>
       </BrowserRouter>
+      </AppInitializer>
     </ErrorBoundary>
   );
 };

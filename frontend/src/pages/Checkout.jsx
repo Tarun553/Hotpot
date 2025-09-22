@@ -231,6 +231,29 @@ const Checkout = () => {
         {/* Title */}
         <h2 className="text-2xl font-bold text-orange-700 mb-6">Checkout</h2>
 
+        {/* Validation Warnings */}
+        {(!address || !location?.lat || !location?.long) && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center gap-2 text-amber-700">
+              <span>⚠️</span>
+              <span className="font-medium">Please complete the following:</span>
+            </div>
+            <ul className="mt-2 text-sm text-amber-600 list-disc list-inside">
+              {(!address || !location?.lat || !location?.long) && (
+                <li>Select a delivery address on the map</li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Cart Summary */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-medium text-gray-700 mb-2">Order Summary</h4>
+          <div className="text-sm text-gray-600">
+            {cartItems?.length || 0} item{(cartItems?.length || 0) !== 1 ? 's' : ''} • Subtotal: ₹{subtotal}
+          </div>
+        </div>
+
         {/* Delivery Location */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center gap-2">

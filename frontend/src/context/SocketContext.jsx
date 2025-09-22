@@ -13,7 +13,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (userData && token) {
-      const newSocket = io('http://localhost:3000', {
+      const newSocket = io('https://hotpot-3y4y.onrender.com', {
         auth: { token }
       });
 

@@ -16,7 +16,7 @@ import { serverUrl } from "../App"; // Import the serverUrl
 import { auth, provider } from "../../firebase";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { ClipLoader } from "react-spinners";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { setUserData, setToken } from "../redux/userSlice";

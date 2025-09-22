@@ -3,10 +3,10 @@ import OwnerNavbar from "./OwnerNav";
 import { useSelector } from "react-redux";
 import { FaUtensils } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import OwnerItemCard from "./OwnerItemCard";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import useGetMyShop from "../hooks/useGetMyShop";
 
 const OwnerDashboard = () => {

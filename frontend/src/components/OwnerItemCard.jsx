@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { FaPen, FaTrash } from "react-icons/fa";
 import { IndianRupee } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setMyShopData } from "../redux/ownerSlice";
 const OwnerItemCard = ({ data }) => {

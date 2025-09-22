@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setLocation as setMapLocation, setAddress as setMapAddress } from "@/redux/mapSlice";
 import axios from "axios";
 import { serverUrl } from "../App";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 const Checkout = () => {
   const navigate  = useNavigate();

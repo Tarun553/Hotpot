@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -25,11 +25,11 @@ import DeliveryBoyDashboard from "./pages/DeliveryBoyDashboard";
 import DeliveryBoySetup from "./pages/DeliveryBoySetup";
 import ParticularShop from "./components/ParticularShop";
 import CategoryPage from "./pages/CategoryPage";
-// Access the server URL from environment variables
-export const serverUrl = import.meta.env.VITE_SERVER_URL;
+import NotFound from "./pages/NotFound";
+import Loading from "./components/Loading";
 
 const App = () => {
-  const user = useSelector((state) => state.user.userData);
+  const { userData: user, isLoading } = useSelector((state) => state.user);
 
   useGetCurrentUser();
   useGetCity();
@@ -39,6 +39,12 @@ const App = () => {
   useGetMyOrders();
   useShopOrders();
   useUpdateLocation();
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
@@ -61,6 +67,8 @@ const App = () => {
         <Route path="/delivery-setup" element={user?.role === 'deliveryBoy' ? <DeliveryBoySetup /> : <Navigate to="/login" />} />
         <Route path="/shop/:id" element={user ? <ParticularShop /> : <Navigate to="/login" />} />
         <Route path="/category/:category" element={user ? <CategoryPage /> : <Navigate to="/login" />} />
+        {/* Catch-all route for 404 pages */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

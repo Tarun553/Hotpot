@@ -3,7 +3,7 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 const ShopCard = ({ shop }) => {
   const navigate = useNavigate();
 

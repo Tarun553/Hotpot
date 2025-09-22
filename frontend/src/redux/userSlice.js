@@ -7,6 +7,7 @@ const userSlice = createSlice({
   initialState: {
     userData: null,
     token: localStorage.getItem('token') || null,
+    isLoading: true,
     city: null,
     currentState: null,
     currentAddress: null,
@@ -18,6 +19,10 @@ const userSlice = createSlice({
   reducers: {
     setUserData: (state, action) => {
       state.userData = action.payload;
+      state.isLoading = false;
+    },
+    setLoading: (state, action) => {
+      state.isLoading = action.payload;
     },
     setToken: (state, action) => {
       state.token = action.payload;
@@ -71,5 +76,5 @@ const userSlice = createSlice({
     },
 }});
 
-export const { setUserData, setToken, setCity, setCurrentState, setCurrentAddress, addToCart, removeToCart, updateToCart, setCartItems, setMyOrders, setShopOrders, setOrderStatus } = userSlice.actions;
+export const { setUserData, setLoading, setToken, setCity, setCurrentState, setCurrentAddress, addToCart, removeToCart, updateToCart, setCartItems, setMyOrders, setShopOrders, setOrderStatus } = userSlice.actions;
 export default userSlice.reducer;

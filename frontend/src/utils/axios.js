@@ -1,6 +1,8 @@
 import axios from 'axios';
-import { serverUrl } from '../App';
 import toast from 'react-hot-toast';
+
+// Get server URL from environment variables
+const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 // Create an axios instance
 const apiClient = axios.create({

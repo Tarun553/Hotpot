@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GoogleMap, Marker, useJsApiLoader, InfoWindow, Polyline } from "@react-google-maps/api";
-import { serverUrl } from "../App";
 import { useSocket } from "../context/SocketContext";
+import apiClient from "../utils/axios";
 
 const DEFAULT_POSITION = { lat: 28.6139, lng: 77.2090 }; // fallback to Delhi
 
@@ -56,24 +56,9 @@ useEffect(() => {
       if (showLoader) setLoading(true);
       setRefreshing(true);
 
-      const res = await fetch(`${serverUrl}/api/orders/${orderId}/tracking`, {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!res.ok) {
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || `Server error: ${res.status}`);
-        } else {
-          throw new Error(`API endpoint not found: ${res.status} - Make sure backend server is running`);
-        }
-      }
-
-      const data = await res.json();
+      const res = await apiClient.get(`/api/orders/${orderId}/tracking`);
+      
+      const data = res.data;
       setTracking(data);
       setError(null);
       setLastUpdated(new Date());

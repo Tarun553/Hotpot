@@ -1,8 +1,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { serverUrl } from "../App";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +8,7 @@ import { Star, ArrowLeft } from "lucide-react";
 import useCart from "../hooks/useCart";
 import { Input } from "../components/ui/input";
 import { toast } from "react-hot-toast";
+import apiClient from "../utils/axios";
 
 
 const CategoryPage = () => {
@@ -58,9 +57,7 @@ const CategoryPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${serverUrl}/api/items/category/${category}`, {
-          withCredentials: true,
-        });
+        const response = await apiClient.get(`/api/items/category/${category}`);
         setItems(response.data.items || []);
       } catch (error) {
         setError("Error fetching items. Please try again later.");

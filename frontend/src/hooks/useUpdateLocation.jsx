@@ -1,14 +1,52 @@
-import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { serverUrl } from '../App';
-import { setUserData } from '../redux/userSlice';
 import toast from 'react-hot-toast';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
+import apiClient from '../utils/axios';
 
 const useUpdateLocation = () => {
   const dispatch = useDispatch();
   const { userData } = useSelector((state) => state.user);
   const watchIdRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const maxRetries = 3;
+  
+  const updateLocationToServer = useCallback(async (latitude, longitude) => {
+    try {
+      const response = await apiClient.put('/api/user/update-location', {
+        lat: latitude,
+        long: longitude,
+      });
+      
+      console.log('Location updated:', response.data);
+      retryCountRef.current = 0; // Reset retry count on success
+      
+    } catch (error) {
+      console.error('Location update error:', error);
+      
+      // Handle different types of errors
+      if (error.response?.status === 401) {
+        // Authentication error - handled by axios interceptor
+        console.log('Authentication error during location update');
+      } else if (error.response?.status >= 500) {
+        // Server error - retry logic
+        retryCountRef.current += 1;
+        if (retryCountRef.current < maxRetries) {
+          console.log(`Retrying location update (${retryCountRef.current}/${maxRetries})`);
+          setTimeout(() => updateLocationToServer(latitude, longitude), 2000 * retryCountRef.current);
+        } else {
+          toast.error("Failed to update location after multiple attempts");
+          retryCountRef.current = 0;
+        }
+      } else if (!error.response) {
+        // Network error
+        toast.error("Network error while updating location");
+      } else {
+        // Other errors
+        toast.error("Failed to update location");
+      }
+    }
+  }, []);
   
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -25,26 +63,7 @@ const useUpdateLocation = () => {
       watchIdRef.current = navigator.geolocation.watchPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          try {
-            // Fixed: Correct API endpoint with /api prefix
-            const response = await axios.put(`${serverUrl}/api/user/update-location`, {
-              lat: latitude,  // Backend expects 'lat', not 'latitude'
-              long: longitude, // Backend expects 'long', not 'longitude'
-            }, {
-              withCredentials: true, // Added credentials for authentication
-            });
-            
-            console.log('Location updated:', response.data);
-            
-            // Don't update Redux state to avoid infinite loops
-            // Location is primarily for delivery assignment, not user state
-          } catch (error) {
-            console.error('Location update error:', error);
-            // Only show error toast if it's not a network/auth issue
-            if (error.response?.status !== 401) {
-              toast.error("Failed to update location");
-            }
-          }
+          await updateLocationToServer(latitude, longitude);
         },
         (error) => {
           console.error('Geolocation error:', error);
@@ -80,41 +99,43 @@ const useUpdateLocation = () => {
         watchIdRef.current = null;
       }
     };
-  }, [dispatch, userData?.email]); // Use userData.email instead of full userData object
+  }, [userData?.email, updateLocationToServer]); // Added updateLocationToServer to dependencies
 
   // Function to manually stop location tracking
-  const stopTracking = () => {
+  const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-  };
+  }, []);
 
   // Function to restart location tracking
-  const startTracking = () => {
+  const startTracking = useCallback(() => {
     if (userData && !watchIdRef.current) {
       // Restart the useEffect logic
       if (navigator.geolocation) {
         watchIdRef.current = navigator.geolocation.watchPosition(
           async (position) => {
             const { latitude, longitude } = position.coords;
-            try {
-              const response = await axios.put(`${serverUrl}/api/user/update-location`, {
-                lat: latitude,
-                long: longitude,
-              }, {
-                withCredentials: true,
-              });
-              
-              console.log('Location updated:', response.data);
-              
-              // Don't update Redux state to avoid infinite loops
-            } catch (error) {
-              console.error('Location update error:', error);
-            }
+            await updateLocationToServer(latitude, longitude);
           },
           (error) => {
             console.error('Geolocation error:', error);
+            // Error handling same as above
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                toast.error('Location access denied by user');
+                break;
+              case error.POSITION_UNAVAILABLE:
+                toast.error('Location information unavailable');
+                break;
+              case error.TIMEOUT:
+                toast.error('Location request timed out');
+                break;
+              default:
+                toast.error('Unable to retrieve your location');
+                break;
+            }
           },
           {
             enableHighAccuracy: true,
@@ -124,7 +145,7 @@ const useUpdateLocation = () => {
         );
       }
     }
-  };
+  }, [userData, updateLocationToServer]);
 
   return { stopTracking, startTracking };
 };

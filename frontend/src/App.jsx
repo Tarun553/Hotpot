@@ -1,36 +1,44 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import React, { Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgetPassword";
+import ErrorBoundary from "./components/ErrorBoundary";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoadingSpinner from "./components/LoadingSpinner";
 import useGetCurrentUser from "./hooks/useGetCurrentUser";
-import Home from "./pages/Home";
-import UserCart from "./pages/UserCart";
-import Checkout from "./pages/Checkout";
 import useGetCity from "./hooks/useGetCity";
 import useGetMyShop from "./hooks/useGetMyShop";
-import CreateEditShop from "./pages/CreateEditShop";
-import EditItemOwner from "./pages/EditItemOwner";
-import AddFoodItem from "./pages/AddFoodItem";
 import useGetAllShops from "./hooks/useGetAllShops";
 import useGetShopByCity from "./hooks/useGetShopByCity";
-import OrderPlaced from "./pages/OrderPlaced";
-import MyOrders from "./pages/MyOrders";
-import TrackOrder from "./pages/TrackOrder";
 import useGetMyOrders from "./hooks/useGetMyOrders";
 import useShopOrders from "./hooks/useShopOrders";
 import useUpdateLocation from "./hooks/useUpdateLocation";
-import DeliveryBoyDashboard from "./pages/DeliveryBoyDashboard";
-import DeliveryBoySetup from "./pages/DeliveryBoySetup";
-import ParticularShop from "./components/ParticularShop";
-import CategoryPage from "./pages/CategoryPage";
+
+// Lazy load components for code splitting
+const Login = React.lazy(() => import("./pages/Login"));
+const Register = React.lazy(() => import("./pages/Register"));
+const ForgotPassword = React.lazy(() => import("./pages/ForgetPassword"));
+const Home = React.lazy(() => import("./pages/Home"));
+const UserCart = React.lazy(() => import("./pages/UserCart"));
+const Checkout = React.lazy(() => import("./pages/Checkout"));
+const CreateEditShop = React.lazy(() => import("./pages/CreateEditShop"));
+const EditItemOwner = React.lazy(() => import("./pages/EditItemOwner"));
+const AddFoodItem = React.lazy(() => import("./pages/AddFoodItem"));
+const OrderPlaced = React.lazy(() => import("./pages/OrderPlaced"));
+const MyOrders = React.lazy(() => import("./pages/MyOrders"));
+const TrackOrder = React.lazy(() => import("./pages/TrackOrder"));
+const DeliveryBoyDashboard = React.lazy(() => import("./pages/DeliveryBoyDashboard"));
+const DeliveryBoySetup = React.lazy(() => import("./pages/DeliveryBoySetup"));
+const ParticularShop = React.lazy(() => import("./components/ParticularShop"));
+const CategoryPage = React.lazy(() => import("./pages/CategoryPage"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+
 // Access the server URL from environment variables
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 const App = () => {
   const user = useSelector((state) => state.user.userData);
 
+  // Initialize hooks
   useGetCurrentUser();
   useGetCity();
   useGetMyShop();
@@ -39,30 +47,155 @@ const App = () => {
   useGetMyOrders();
   useShopOrders();
   useUpdateLocation();
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
-        <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/" />} />
-        <Route path="/create-shop" element={user ? <CreateEditShop /> : <Navigate to="/login" />} />
-        <Route path="/create-item" element={user ? <AddFoodItem /> : <Navigate to="/login" />} />
-        <Route path="/edit-item/:id" element={user ? <EditItemOwner /> : <Navigate to="/login" />} />
-        <Route path="/cart" element={user ? <UserCart /> : <Navigate to="/login" />} />
-        <Route path="/checkout" element={user ? <Checkout /> : <Navigate to="/login" />} />
-        <Route path="/order-placed" element={user ? <OrderPlaced /> : <Navigate to="/login" />} />
-        {/* my order  route */}
-        <Route path="/my-orders" element={user ? <MyOrders /> : <Navigate to="/login" />} />
-        {/* track order route */}
-        <Route path="/track-order/:orderId" element={user ? <TrackOrder /> : <Navigate to="/login" />} />
-        {/* delivery boy routes */}
-        <Route path="/delivery-dashboard" element={user?.role === 'deliveryBoy' ? <DeliveryBoyDashboard /> : <Navigate to="/login" />} />
-        <Route path="/delivery-setup" element={user?.role === 'deliveryBoy' ? <DeliveryBoySetup /> : <Navigate to="/login" />} />
-        <Route path="/shop/:id" element={user ? <ParticularShop /> : <Navigate to="/login" />} />
-        <Route path="/category/:category" element={user ? <CategoryPage /> : <Navigate to="/login" />} />
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Suspense fallback={<LoadingSpinner fullScreen />}>
+          <Routes>
+            {/* Public routes */}
+            <Route 
+              path="/login" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <Login />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <Register />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/forgot-password" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <ForgotPassword />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Protected routes */}
+            <Route 
+              path="/" 
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/cart" 
+              element={
+                <ProtectedRoute>
+                  <UserCart />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/checkout" 
+              element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/order-placed" 
+              element={
+                <ProtectedRoute>
+                  <OrderPlaced />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/my-orders" 
+              element={
+                <ProtectedRoute>
+                  <MyOrders />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/track-order/:orderId" 
+              element={
+                <ProtectedRoute>
+                  <TrackOrder />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/shop/:id" 
+              element={
+                <ProtectedRoute>
+                  <ParticularShop />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/category/:category" 
+              element={
+                <ProtectedRoute>
+                  <CategoryPage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Owner routes */}
+            <Route 
+              path="/create-shop" 
+              element={
+                <ProtectedRoute allowedRoles="owner">
+                  <CreateEditShop />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/create-item" 
+              element={
+                <ProtectedRoute allowedRoles="owner">
+                  <AddFoodItem />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/edit-item/:id" 
+              element={
+                <ProtectedRoute allowedRoles="owner">
+                  <EditItemOwner />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Delivery boy routes */}
+            <Route 
+              path="/delivery-dashboard" 
+              element={
+                <ProtectedRoute allowedRoles="deliveryBoy">
+                  <DeliveryBoyDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/delivery-setup" 
+              element={
+                <ProtectedRoute allowedRoles="deliveryBoy">
+                  <DeliveryBoySetup />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* 404 and catch-all routes */}
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 };
 

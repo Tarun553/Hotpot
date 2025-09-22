@@ -7,10 +7,16 @@ import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import OwnerItemCard from "./OwnerItemCard";
 import { useNavigate } from "react-router";
+import useGetMyShop from "../hooks/useGetMyShop";
 
 const OwnerDashboard = () => {
   const { myShopData } = useSelector((state) => state.owner);
   const navigate = useNavigate();
+  
+  // Fetch shop data
+  useGetMyShop();
+  
+  console.log("myShopData:", myShopData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-100">

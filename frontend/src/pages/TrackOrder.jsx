@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GoogleMap, Marker, useJsApiLoader, InfoWindow, Polyline } from "@react-google-maps/api";
 import { serverUrl } from "../App";
+import { useSocket } from "../context/SocketContext";
 
 const DEFAULT_POSITION = { lat: 28.6139, lng: 77.2090 }; // fallback to Delhi
 
 const TrackOrder = () => {
+  const { socket } = useSocket();
   const { orderId } = useParams();
   const [tracking, setTracking] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,6 +15,37 @@ const TrackOrder = () => {
   const [showDeliveryInfo, setShowDeliveryInfo] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+useEffect(() => {
+  if (socket) {
+    socket.on('delivery:locationUpdate', (data) => {
+      if (data.orderId === orderId) {
+        setTracking(prev => ({
+          ...prev,
+          deliveryBoy: {
+            ...prev.deliveryBoy,
+            location: data.deliveryBoy.location
+          }
+        }));
+      }
+    });
+
+    socket.on('order:statusUpdate', (data) => {
+      if (data.orderId === orderId) {
+        setTracking(prev => ({
+          ...prev,
+          orderStatus: data.status,
+          shopOrder: data.shopOrders
+        }));
+      }
+    });
+
+    return () => {
+      socket.off('delivery:locationUpdate');
+      socket.off('order:statusUpdate');
+    };
+  }
+}, [socket, orderId]);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,

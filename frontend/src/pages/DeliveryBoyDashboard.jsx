@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+// ...existing code...
+import { useSocket } from '../context/SocketContext';
+import { useRealTimeNotifications } from '../hooks/useRealTimeNotifications';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -11,6 +15,24 @@ import { serverUrl } from '../App';
 import DeliveryTrackingMap from '../components/DeliveryTrackingMap';
 
 const DeliveryBoyDashboard = () => {
+  const { socket } = useSocket();
+  useRealTimeNotifications();
+  const [availableDeliveriesRT, setAvailableDeliveriesRT] = useState([]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('delivery:newAssignment', (data) => {
+        setAvailableDeliveriesRT(prev => [...prev, data]);
+      });
+      socket.on('delivery:assignmentTaken', (data) => {
+        setAvailableDeliveriesRT(prev => prev.filter(delivery => delivery.assignmentId !== data.assignmentId));
+      });
+      return () => {
+        socket.off('delivery:newAssignment');
+        socket.off('delivery:assignmentTaken');
+      };
+    }
+  }, [socket]);
   const {
     availableDeliveries,
     myDeliveries,

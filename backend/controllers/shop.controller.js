@@ -52,6 +52,10 @@ export const upsertShop = async (req, res) => {
 export const getShopByOwner = async (req, res) => {
   try {
     const owner = req.userId;
+    console.log(owner);
+    if (!owner) {
+      return res.status(400).json({ message: "Owner ID is not found" });
+    }
     const shop = await Shop.findOne({ owner })
       .populate('items')
       .populate('owner', '-password');

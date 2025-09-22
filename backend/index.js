@@ -1,4 +1,6 @@
 import express from "express";
+import { createServer } from 'http';
+import { initializeSocket } from "./socket/socket.js";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.route.js";
@@ -11,7 +13,10 @@ import orderRouter from "./routes/order.route.js";
 import deliveryRouter from "./routes/delivery.route.js";
 import User from "./models/user.model.js";
 
+
 const app = express();
+const httpServer = createServer(app);
+export const io = initializeSocket(httpServer);
 
 // Connect to database and ensure indexes
 const initializeServer = async () => {
@@ -54,6 +59,6 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(3000, () => {
+httpServer.listen(3000, () => {
   console.log("Server is running on port 3000");
 });

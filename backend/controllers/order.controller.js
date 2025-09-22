@@ -1,9 +1,12 @@
+import { io } from '../index.js';
 import Order from "../models/order.model.js";
 import Cart from "../models/cart.model.js";
 import Item from "../models/items.model.js";
 import Shop from "../models/shop.model.js";
 import User from "../models/user.model.js";
 import DeliveryAssignment from "../models/deliveryAssignment.model.js";
+import { emitToDeliveryBoys, emitToUser } from "../socket/event.js";
+import mongoose from 'mongoose';
 
 // Helper function to find delivery boys within 5km radius
 const findNearbyDeliveryBoys = async (latitude, longitude, maxDistance = 5000) => {
@@ -61,7 +64,24 @@ const createDeliveryAssignment = async (orderId, shopId, shopOrderId, deliveryAd
     });
 
     await deliveryAssignment.save();
-    
+
+    // Real-time broadcast to nearby delivery boys
+    // Get io instance from main server
+    // Optionally, populate order and shop data for the event
+    const populatedOrder = await Order.findById(orderId)
+      .populate('user', 'name email')
+      .populate({
+        path: 'shopOrder.shop',
+        select: 'name image'
+      });
+    const shopData = await Shop.findById(shopId).select('name image address');
+    emitToDeliveryBoys(io, nearbyDeliveryBoys.map(db => db._id), 'delivery:newAssignment', {
+      assignmentId: deliveryAssignment._id,
+      order: populatedOrder,
+      shop: shopData,
+      distance: '< 5km'
+    });
+
     console.log(`✅ Order broadcasted to ${nearbyDeliveryBoys.length} delivery boys within 5km`);
     console.log(`📋 Assignment ID: ${deliveryAssignment._id}`);
     
@@ -162,7 +182,7 @@ export const placeOrder = async (req, res) => {
 
     for (const [shopId, group] of Object.entries(shopGroups)) {
       shopOrders.push({
-        shop: shopId,
+         shop: new mongoose.Types.ObjectId(shopId),
         owner: group.shop.owner,
         subtotal: group.subtotal,
         shopOrderItems: group.items

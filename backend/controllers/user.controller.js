@@ -1,6 +1,9 @@
 import Item from "../models/items.model.js";
 import User from "../models/user.model.js";
 import Shop from "../models/shop.model.js";
+import { io } from "../index.js";
+import { emitLocationUpdate } from "../socket/event.js";
+import Order from "../models/order.model.js";
 export const getCurrentUser = async (req, res) => {
   try {
     const userId = req.userId;
@@ -18,26 +21,43 @@ export const getCurrentUser = async (req, res) => {
   }
 };
 
-export const updateUserLocation = async (req, res) => {
+export const updateLocation = async (req, res) => {
   try {
-    const userId = req.userId;
     const { lat, long } = req.body;
-    if (!userId) {
-      return res.status(400).json({ message: "userId is not found" });
-    }
+    const userId = req.userId;
+
     const user = await User.findByIdAndUpdate(
       userId,
-      { location: { type: "Point", coordinates: [long, lat] } },
+      {
+        location: {
+          type: "Point",
+          coordinates: [parseFloat(long), parseFloat(lat)]
+        }
+      },
       { new: true }
     );
-    if (!user) {
-      return res.status(400).json({ message: "user is not found" });
+
+    // If delivery boy, emit location to active order customers
+    if (user.role === 'deliveryBoy') {
+      const activeOrders = await Order.find({
+        'shopOrder.assigment': { $exists: true },
+        orderStatus: { $in: ['confirmed', 'preparing', 'on the way'] }
+      }).populate('shopOrder.assigment');
+
+      const userActiveOrders = activeOrders.filter(order =>
+        order.shopOrder.some(so => 
+          so.assigment?.assignedTo?.toString() === userId.toString()
+        )
+      );
+
+      if (userActiveOrders.length > 0) {
+        emitLocationUpdate(io, userId, user.location, userActiveOrders);
+      }
     }
-    return res
-      .status(200)
-      .json({ message: "Location updated successfully", user });
+
+    res.json({ message: "Location updated successfully" });
   } catch (error) {
-    return res.status(400).json({ message: "Internal server error" });
+    res.status(500).json({ message: error.message });
   }
 };
 

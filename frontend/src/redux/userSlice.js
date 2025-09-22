@@ -6,6 +6,7 @@ const userSlice = createSlice({
   name: "user",
   initialState: {
     userData: null,
+    token: localStorage.getItem('token') || null,
     city: null,
     currentState: null,
     currentAddress: null,
@@ -17,6 +18,15 @@ const userSlice = createSlice({
   reducers: {
     setUserData: (state, action) => {
       state.userData = action.payload;
+    },
+    setToken: (state, action) => {
+      state.token = action.payload;
+      // Also store in localStorage as backup
+      if (action.payload) {
+        localStorage.setItem('token', action.payload);
+      } else {
+        localStorage.removeItem('token');
+      }
     },
     setCity: (state, action) => {
       state.city = action.payload;
@@ -61,5 +71,5 @@ const userSlice = createSlice({
     },
 }});
 
-export const { setUserData, setCity, setCurrentState, setCurrentAddress, addToCart, removeToCart, updateToCart, setCartItems, setMyOrders, setShopOrders, setOrderStatus } = userSlice.actions;
+export const { setUserData, setToken, setCity, setCurrentState, setCurrentAddress, addToCart, removeToCart, updateToCart, setCartItems, setMyOrders, setShopOrders, setOrderStatus } = userSlice.actions;
 export default userSlice.reducer;

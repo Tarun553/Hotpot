@@ -2,32 +2,37 @@ import React from 'react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { serverUrl } from '../App'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setUserData } from '@/redux/userSlice'
+
 const useGetCurrentUser = () => {
   const dispatch = useDispatch();
-  // const [user, setUser] = useState(null)
-  // const [loading, setLoading] = useState(true)
-  // const [error, setError] = useState(null)
+  const { token } = useSelector(state => state.user);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`${serverUrl}/api/user/current`, { withCredentials: true })
+        const config = {
+          withCredentials: true,
+        };
+        
+        // Add Authorization header if token exists
+        if (token) {
+          config.headers = {
+            Authorization: `Bearer ${token}`
+          };
+        }
+        
+        const response = await axios.get(`${serverUrl}/api/user/current`, config);
         dispatch(setUserData(response.data.user));
-        // setUser(response.data.user)
       
       } catch (err) {
-        // setError(err)
-      } finally {
-        // setLoading(false)
+        console.error('Error fetching current user:', err);
       }
     }
 
     fetchUser()
-  }, [])
-
-  // return { user, loading, error }
+  }, [token, dispatch])
 }
 
 export default useGetCurrentUser

@@ -19,7 +19,7 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { ClipLoader } from "react-spinners";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { setUserData } from "../redux/userSlice";
+import { setUserData, setToken } from "../redux/userSlice";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -57,6 +57,9 @@ const Login = () => {
       });
      
       dispatch(setUserData(result.data.user));
+      if (result.data.token) {
+        dispatch(setToken(result.data.token));
+      }
       if (result.data.success) {
         setFormData({ email: "", password: "", mobile: "", role: "user" });
         toast.success("User logged in successfully");

@@ -19,7 +19,7 @@ import { ClipLoader } from "react-spinners";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { setUserData } from "../redux/userSlice";
+import { setUserData, setToken } from "../redux/userSlice";
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -58,6 +58,9 @@ const Register = () => {
       const result = await axios.post(`${serverUrl}/api/auth/register`, formData, { withCredentials: true });
          
       dispatch(setUserData(result.data.user));
+      if (result.data.token) {
+        dispatch(setToken(result.data.token));
+      }
       // You can handle success here (e.g., redirect, show success message)
       if(result.data.success){
        toast.success("Registered Successfully")

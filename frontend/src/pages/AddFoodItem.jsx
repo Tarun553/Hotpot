@@ -4,12 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FaUtensils } from "react-icons/fa";
-import axios from "axios";
-import { serverUrl } from "../App";
 import { useDispatch, useSelector } from "react-redux";
 import { setMyShopData } from "../redux/ownerSlice";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../utils/axios";
 const categories = [
     "select Category",
     "snacks",
@@ -67,20 +66,12 @@ const AddFoodItem = ({ onSuccess }) => {
       formData.append("foodType", form.type);
       if (imageFile) formData.append("image", imageFile);
       
-      const config = {
-        withCredentials: true,
+      console.log("Submitting form with data:", form);
+      const result = await apiClient.post('/api/items/add-item', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
-      };
-      
-      // Add Authorization header if token exists
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      
-      console.log("Submitting form with data:", form);
-      const result = await axios.post(`${serverUrl}/api/items/add-item`, formData, config);
+      });
       console.log("Add item result:", result);
       dispatch(setMyShopData(result.data));
     

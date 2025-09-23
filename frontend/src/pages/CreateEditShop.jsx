@@ -4,13 +4,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FaUtensils } from "react-icons/fa";
-import axios from "axios";
-import { serverUrl } from "../App";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { setMyShopData } from "../redux/ownerSlice";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../utils/axios";
 const CreateEditShop = ({ shopData, onSuccess }) => {
   const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -67,8 +66,7 @@ const CreateEditShop = ({ shopData, onSuccess }) => {
       if (imageFile) formData.append("image", imageFile);
       // Add phone if needed
       // formData.append("phone", form.phone);
-      const res = await axios.post(`${serverUrl}/api/shop/create-edit`, formData, {
-        withCredentials: true,
+      const res = await apiClient.post('/api/shop/create-edit', formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       dispatch(setMyShopData(res.data.shop));

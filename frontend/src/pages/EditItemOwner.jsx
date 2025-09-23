@@ -5,8 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import axios from "axios";
-import { serverUrl } from "../App";
+import apiClient from "../utils/axios";
 
 const categories = [
   "snacks",
@@ -44,7 +43,7 @@ const EditItemOwner = () => {
     const fetchItem = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${serverUrl}/api/items/${id}`, { withCredentials: true });
+        const res = await apiClient.get(`/api/items/${id}`);
         console.log(res.data);
         const item = res.data.item;
         setForm({
@@ -87,8 +86,7 @@ const EditItemOwner = () => {
       formData.append("category", form.category);
       formData.append("foodType", form.foodType);
       if (imageFile) formData.append("image", imageFile);
-      const res = await axios.put(`${serverUrl}/api/items/edit-item/${id}`, formData, {
-        withCredentials: true,
+      const res = await apiClient.put(`/api/items/edit-item/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       navigate(-1); // Go back to dashboard

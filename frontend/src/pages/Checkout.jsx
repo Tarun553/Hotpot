@@ -5,16 +5,20 @@ import { Card } from "@/components/ui/card";
 import useCart from "../hooks/useCart";
 import { useDispatch, useSelector } from "react-redux";
 import { setLocation as setMapLocation, setAddress as setMapAddress } from "@/redux/mapSlice";
-import axios from "axios";
-import { serverUrl } from "../App";
-import { useNavigate } from "react-router";
+import { clearCart } from "@/redux/userSlice";
+import apiClient from "../utils/axios";
+import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "../components/LoadingSpinner";
+import toast from "react-hot-toast";
 
 const Checkout = () => {
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const { cartItems } = useCart();
   const dispatch = useDispatch();
   const { location, address } = useSelector((state) => state.map);
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState(null);
 
   const mapRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -22,32 +26,79 @@ const Checkout = () => {
   const gmapRef = useRef(null);
   const [locating, setLocating] = useState(false);
 
+  // Redirect if cart is empty
+  useEffect(() => {
+    if (!cartItems || cartItems.length === 0) {
+      toast.error("Your cart is empty");
+      navigate("/cart");
+      return;
+    }
+  }, [cartItems, navigate]);
+
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  
-  
-  
-  
+
   const handlePlaceOrder = async () => {
+    // Validation
+    if (!address || !location?.lat || !location?.long) {
+      toast.error("Please select a delivery address");
+      return;
+    }
+
+    if (!cartItems || cartItems.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    setIsPlacingOrder(true);
+    setOrderError(null);
+
     try {
-      const response = await axios.post(`${serverUrl}/api/orders/place`,  {
+      const response = await apiClient.post("/api/orders/place", {
         paymentMethod,
         deliveryAddress: {
           text: address,
           latitude: location.lat,
           longitude: location.long,
         },
-      }, { withCredentials: true });
+      });
 
       if (response.status === 201) {
-        navigate("/order-placed");
-        // Clear cart and reset state
+        // Clear cart after successful order
+        dispatch(clearCart());
+        
+        toast.success("Order placed successfully!");
+        
+        // Navigate to order placed page with order details
+        navigate("/order-placed", { 
+          state: { 
+            orderId: response.data?.orderId || response.data?.order?.id,
+            orderDetails: response.data?.order 
+          } 
+        });
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("Failed to place order");
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          "Failed to place order";
+      
+      setOrderError(errorMessage);
+      toast.error(errorMessage);
+      
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        toast.error("Please login again to continue");
+        navigate("/login");
+      } else if (error.response?.status === 400) {
+        // Bad request - might be validation errors
+        toast.error("Please check your order details and try again");
+      }
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -180,6 +231,29 @@ const Checkout = () => {
         {/* Title */}
         <h2 className="text-2xl font-bold text-orange-700 mb-6">Checkout</h2>
 
+        {/* Validation Warnings */}
+        {(!address || !location?.lat || !location?.long) && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-center gap-2 text-amber-700">
+              <span>⚠️</span>
+              <span className="font-medium">Please complete the following:</span>
+            </div>
+            <ul className="mt-2 text-sm text-amber-600 list-disc list-inside">
+              {(!address || !location?.lat || !location?.long) && (
+                <li>Select a delivery address on the map</li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Cart Summary */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-medium text-gray-700 mb-2">Order Summary</h4>
+          <div className="text-sm text-gray-600">
+            {cartItems?.length || 0} item{(cartItems?.length || 0) !== 1 ? 's' : ''} • Subtotal: ₹{subtotal}
+          </div>
+        </div>
+
         {/* Delivery Location */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -284,8 +358,24 @@ const Checkout = () => {
 
         {/* Place Order Button */}
         <div className="mt-6">
-          <Button onClick={handlePlaceOrder} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl shadow-lg transition">
-            Place Order
+          {orderError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">{orderError}</p>
+            </div>
+          )}
+          <Button 
+            onClick={handlePlaceOrder} 
+            disabled={isPlacingOrder || !address || cartItems?.length === 0}
+            className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl shadow-lg transition"
+          >
+            {isPlacingOrder ? (
+              <div className="flex items-center justify-center gap-2">
+                <LoadingSpinner size={20} color="#ffffff" />
+                Placing Order...
+              </div>
+            ) : (
+              "Place Order"
+            )}
           </Button>
         </div>
       </div>

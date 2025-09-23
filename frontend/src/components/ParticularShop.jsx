@@ -1,14 +1,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
-import { serverUrl } from "../App";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Mail, Phone, Star, ArrowBigLeft } from "lucide-react";
 import useCart from "../hooks/useCart";
+import apiClient from "../utils/axios";
 
 const ParticularShop = () => {
   const { addItemToCart } = useCart();
@@ -20,9 +19,7 @@ const ParticularShop = () => {
   useEffect(() => {
     const fetchShop = async () => {
       try {
-        const response = await axios.get(`${serverUrl}/api/shop/${id}`, {
-          withCredentials: true,
-        });
+        const response = await apiClient.get(`/api/shop/${id}`);
         setShop(response.data.shop);
         setError(null);
       } catch (error) {

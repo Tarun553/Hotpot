@@ -8,6 +8,8 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
 import { setMyShopData } from "../redux/ownerSlice";
+import apiClient from "../utils/axios";
+import toast from "react-hot-toast";
 const OwnerItemCard = ({ data }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -19,23 +21,22 @@ const OwnerItemCard = ({ data }) => {
   const onDelete = async (data) => {
     if (!window.confirm("Are you sure you want to delete this item?")) return;
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/items/delete-item/${data._id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
+      const res = await apiClient.delete(`/api/items/delete-item/${data._id}`);
+      
+      if (res.status === 200) {
+        toast.success("Item deleted successfully!");
+        // Update the shop data with the response
+        if (res.data.shop) {
+          dispatch(setMyShopData(res.data.shop));
+        } else {
+          // If no shop data returned, reload the page as fallback
+          window.location.reload();
         }
-      );
-      const result = await res.json();
-      if (res.ok) {
-        window.location.reload(); 
-        // Or trigger a state update in parent
-        dispatch(setMyShopData(result.shop));
-      } else {
-        alert(result.message || "Failed to delete item");
       }
     } catch (err) {
-      alert("Failed to delete item");
+      console.error("Delete item error:", err);
+      const errorMessage = err.response?.data?.message || "Failed to delete item";
+      toast.error(errorMessage);
     }
   };
 

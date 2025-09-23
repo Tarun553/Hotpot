@@ -1,36 +1,40 @@
-import axios from "axios";
-import { serverUrl } from "../App";
 import { useDispatch } from "react-redux";
 import { setMyOrders } from "../redux/userSlice";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
+import apiClient from "../utils/axios";
 
 const useGetMyOrders = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-    const fetchMyOrders = async () => {
+
+  const fetchMyOrders = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const result = await axios.get(`${serverUrl}/api/orders/user`, {
-        withCredentials: true,
-      });
-      console.log(result.data)
+      const result = await apiClient.get("/api/orders/user");
+      console.log(result.data);
       dispatch(setMyOrders(result.data));
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch orders.");
-      toast.error(err.response?.data?.message || "Failed to fetch orders.");
+      console.error("Error fetching orders:", err);
+      const errorMessage = err.response?.data?.message || "Failed to fetch orders.";
+      setError(errorMessage);
+      
+      // Don't show error toast if user is not authenticated (handled by interceptor)
+      if (err.response?.status !== 401) {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     fetchMyOrders();
-  }, []);
+  }, [fetchMyOrders]);
 
-  return { loading, error };
+  return { loading, error, refetch: fetchMyOrders };
 };
 
 export default useGetMyOrders;

@@ -252,7 +252,6 @@ const MyOrders = () => {
         </h2>
 
        
-
         {userData?.role === "user" ? (
           myOrders.length === 0 ? (
             <div className="text-center text-gray-500 py-12 animate-pulse">

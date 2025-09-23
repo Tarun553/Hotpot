@@ -56,6 +56,15 @@ const Checkout = () => {
     setOrderError(null);
 
     try {
+      console.log("🚀 Placing order with data:", {
+        paymentMethod,
+        deliveryAddress: {
+          text: address,
+          latitude: location.lat,
+          longitude: location.long,
+        },
+      });
+
       const response = await apiClient.post("/api/orders/place", {
         paymentMethod,
         deliveryAddress: {
@@ -65,22 +74,58 @@ const Checkout = () => {
         },
       });
 
-      if (response.status === 201) {
+      console.log("✅ Order placement response:", response);
+      console.log("📦 Response data:", response.data);
+
+      if (response.status === 201 && response.data) {
         // Clear cart after successful order
         dispatch(clearCart());
         
         toast.success("Order placed successfully!");
         
-        // Navigate to order placed page with order details
-        navigate("/order-placed", { 
-          state: { 
-            orderId: response.data?.orderId || response.data?.order?.id,
-            orderDetails: response.data?.order 
-          } 
-        });
+        // Get order ID from response - try multiple possible locations
+        const orderId = response.data?.order?._id || 
+                       response.data?.order?.id || 
+                       response.data?.orderId ||
+                       response.data?._id;
+        
+        console.log("🆔 Extracted order ID:", orderId);
+        
+        // Ensure we have some order data before navigating
+        if (orderId || response.data?.order) {
+          // Add a small delay to ensure the response is fully processed
+          setTimeout(() => {
+            // Navigate to order placed page with order details
+            navigate("/order-placed", { 
+              state: { 
+                orderId: orderId,
+                orderDetails: response.data?.order,
+                timestamp: Date.now() // Add timestamp to ensure state is fresh
+              },
+              replace: true // Use replace to avoid back button issues
+            });
+          }, 100);
+        } else {
+          console.warn("⚠️ No order ID found in response, falling back to my-orders");
+          toast.info("Order placed! Redirecting to your orders...");
+          setTimeout(() => {
+            navigate("/my-orders", { replace: true });
+          }, 1000);
+        }
+      } else {
+        console.error("❌ Unexpected response:", response);
+        toast.error("Order placed but received unexpected response");
+        navigate("/my-orders", { replace: true });
       }
     } catch (error) {
-      console.error("Error placing order:", error);
+      console.error("❌ Error placing order:", error);
+      console.error("📊 Error details:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        code: error.code
+      });
       
       const errorMessage = error.response?.data?.message || 
                           error.message || 
@@ -91,11 +136,19 @@ const Checkout = () => {
       
       // Handle specific error cases
       if (error.response?.status === 401) {
+        console.log("🔐 Authentication error - redirecting to login");
         toast.error("Please login again to continue");
         navigate("/login");
       } else if (error.response?.status === 400) {
         // Bad request - might be validation errors
+        console.log("📋 Validation error");
         toast.error("Please check your order details and try again");
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        // Network error - backend might be down
+        console.log("🌐 Network error - backend might be unreachable");
+        toast.error("Unable to connect to server. Please check your internet connection and try again.");
+      } else {
+        console.log("❓ Unknown error occurred");
       }
     } finally {
       setIsPlacingOrder(false);

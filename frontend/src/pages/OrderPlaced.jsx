@@ -9,7 +9,41 @@ const OrderPlaced = () => {
     
     // Get order details from navigation state
     const orderDetails = location.state?.orderDetails;
-    const orderId = location.state?.orderId || orderDetails?.id;
+    const orderId = location.state?.orderId || orderDetails?.id || orderDetails?._id;
+    
+    // Debug logs
+    console.log("🔍 OrderPlaced component state:", location.state);
+    console.log("📋 Order details:", orderDetails);
+    console.log("🆔 Order ID:", orderId);
+    
+    // If no order data is available, redirect to home
+    React.useEffect(() => {
+        if (!location.state || (!orderId && !orderDetails)) {
+            console.warn("⚠️ No order data found, redirecting to my-orders");
+            // Instead of redirecting immediately, show a message and redirect after a delay
+            setTimeout(() => {
+                navigate("/my-orders", { replace: true });
+            }, 2000);
+        }
+    }, [location.state, orderId, orderDetails, navigate]);
+    
+    // If no order data, show a fallback message
+    if (!location.state || (!orderId && !orderDetails)) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 px-4">
+                <div className="flex flex-col items-center justify-center py-10 px-6 text-center max-w-md">
+                    <CheckCircle2 className="h-16 w-16 text-green-500 mb-4 animate-bounce" />
+                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                        Order Placed Successfully! 🎉
+                    </h1>
+                    <p className="text-gray-600 mb-6">
+                        Your order has been placed successfully. Redirecting you to your orders...
+                    </p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                </div>
+            </div>
+        );
+    }
     
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 px-4">

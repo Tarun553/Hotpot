@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import deliveryAPI from '../services/deliveryAPI';
 import toast from 'react-hot-toast';
@@ -12,7 +12,7 @@ const useDeliveryBoy = () => {
   const { userData } = useSelector((state) => state.user);
 
   // Fetch available deliveries
-  const fetchAvailableDeliveries = async () => {
+  const fetchAvailableDeliveries = useCallback(async () => {
     if (userData?.role !== 'deliveryBoy') return;
     
     try {
@@ -25,10 +25,10 @@ const useDeliveryBoy = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userData?.role]);
 
   // Fetch my assigned deliveries
-  const fetchMyDeliveries = async () => {
+  const fetchMyDeliveries = useCallback(async () => {
     if (userData?.role !== 'deliveryBoy') return;
     
     try {
@@ -38,7 +38,7 @@ const useDeliveryBoy = () => {
       console.error('Failed to fetch my deliveries:', error);
       toast.error('Failed to load my deliveries');
     }
-  };
+  }, [userData?.role]);
 
   // Accept delivery assignment
   const acceptDelivery = async (assignmentId) => {
@@ -92,7 +92,7 @@ const useDeliveryBoy = () => {
       fetchAvailableDeliveries();
       fetchMyDeliveries();
     }
-  }, [userData, refreshKey, fetchAvailableDeliveries, fetchMyDeliveries]);
+  }, [userData?.role, refreshKey, fetchAvailableDeliveries, fetchMyDeliveries]);
 
   // Auto-refresh every 30 seconds for available deliveries
   useEffect(() => {
@@ -103,7 +103,7 @@ const useDeliveryBoy = () => {
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [userData, fetchAvailableDeliveries]);
+  }, [userData?.role, fetchAvailableDeliveries]);
 
   return {
     availableDeliveries,

@@ -11,8 +11,8 @@ import useDeliveryBoy from '../hooks/useDeliveryBoy';
 import DeliveryBoyNavbar from '../components/DeliveryBoyNavbar';
 import { MapPin, Clock, Package, DollarSign, Phone, User, Truck, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { serverUrl } from '../App';
 import DeliveryTrackingMap from '../components/DeliveryTrackingMap';
+import apiClient from '../utils/axios';
 
 const DeliveryBoyDashboard = () => {
   const { socket } = useSocket();
@@ -74,18 +74,11 @@ const DeliveryBoyDashboard = () => {
     
     try {
       // Call the backend API to verify OTP and complete delivery
-      const response = await fetch(`${serverUrl}/api/delivery/complete/${otpDeliveryData.assignmentId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ otp })
-      });
+      const response = await apiClient.post(`/api/delivery/complete/${otpDeliveryData.assignmentId}`, { otp });
 
-      const data = await response.json();
+      const data = response.data;
       
-      if (response.ok) {
+      if (response.status === 200) {
         setShowOtpModal(false);
         setOtp('');
         setOtpError('');

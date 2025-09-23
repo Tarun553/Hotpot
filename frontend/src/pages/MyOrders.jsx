@@ -10,11 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import axios from "axios";
-import { serverUrl } from "../App";
 import toast from "react-hot-toast";
 import { setOrderStatus } from "../redux/userSlice";
 import StatusTimeline from "../components/StatusTimeline";
+import apiClient from "../utils/axios";
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -47,10 +46,9 @@ const MyOrders = () => {
     setLoadingStatus((prev) => ({ ...prev, [statusKey]: true }));
     try {
       // Use the correct API endpoint with orderId and shopId
-      const response = await axios.put(
-        `${serverUrl}/api/orders/${orderId}/${shopId}/status`,
-        { status: newStatus },
-        { withCredentials: true }
+      const response = await apiClient.put(
+        `/api/orders/${orderId}/${shopId}/status`,
+        { status: newStatus }
       );
       
       // Show success message with delivery assignment info if status is "preparing"

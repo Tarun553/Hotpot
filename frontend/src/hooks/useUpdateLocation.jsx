@@ -49,13 +49,18 @@ const useUpdateLocation = () => {
   }, []);
   
   useEffect(() => {
+    // Only track location for delivery boys
+    if (!userData || userData.role !== 'deliveryBoy') {
+      return;
+    }
+
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser');
       return;
     }
 
     // Only start watching if user is logged in and we don't already have a watch active
-    if (!userData || watchIdRef.current !== null) {
+    if (watchIdRef.current !== null) {
       return;
     }
 
@@ -99,7 +104,7 @@ const useUpdateLocation = () => {
         watchIdRef.current = null;
       }
     };
-  }, [userData?.email, updateLocationToServer]); // Added updateLocationToServer to dependencies
+  }, [userData?.role, updateLocationToServer]); // Changed to role to prevent unnecessary re-runs
 
   // Function to manually stop location tracking
   const stopTracking = useCallback(() => {

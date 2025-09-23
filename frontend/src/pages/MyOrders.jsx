@@ -36,8 +36,13 @@ const orderStatuses = [
 const MyOrders = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  // Ensure fallback to empty array if null/undefined
   const { myOrders = [], shopOrders = [], userData } = useSelector(
-    (state) => state.user
+    (state) => ({
+      myOrders: Array.isArray(state.user.myOrders) ? state.user.myOrders : [],
+      shopOrders: Array.isArray(state.user.shopOrders) ? state.user.shopOrders : [],
+      userData: state.user.userData
+    })
   );
   const [loadingStatus, setLoadingStatus] = useState({});
 

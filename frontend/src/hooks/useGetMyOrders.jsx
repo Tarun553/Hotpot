@@ -12,7 +12,7 @@ const useGetMyOrders = () => {
 
   const fetchMyOrders = useCallback(async () => {
     console.log("🔄 useGetMyOrders: Starting to fetch orders");
-    console.log("👤 useGetMyOrders: Current user data:", userData);
+    
     
     if (!userData) {
       console.log("⚠️ useGetMyOrders: No user data found, skipping fetch");

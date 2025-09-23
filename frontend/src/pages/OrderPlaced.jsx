@@ -12,9 +12,6 @@ const OrderPlaced = () => {
     const orderId = location.state?.orderId || orderDetails?.id || orderDetails?._id;
     
     // Debug logs
-    console.log("🔍 OrderPlaced component state:", location.state);
-    console.log("📋 Order details:", orderDetails);
-    console.log("🆔 Order ID:", orderId);
     
     // If no order data is available, redirect to home
     React.useEffect(() => {

@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import ShopCard from "./ShopCard";
 import useGetShopByCity from "../hooks/useGetShopByCity";
 import FoodCard from "./FoodCard";
+import { Component } from "./backed-by-yc";
 const UserDashboard = ({ userData }) => {
   const { city } = useSelector((state) => state.user);
   const shops = useSelector((state) => state.shop.shops);
@@ -16,6 +17,7 @@ const UserDashboard = ({ userData }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Welcome Section */}
         <div className="text-center mb-12">
+          <Component />
           <h1 className="text-3xl sm:text-4xl font-bold text-orange-700 font-heading">
             Welcome, {userData.fullName}
           </h1>

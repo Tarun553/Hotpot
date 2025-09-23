@@ -25,6 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { clearUserData } from "@/redux/userSlice";
 import toast from "react-hot-toast";
 
+
 const Navbar = () => {
   const searchInputRef = useRef();
   const { cartItems, userData, city } = useSelector((state) => state.user);
@@ -97,7 +98,7 @@ const Navbar = () => {
     <nav className="w-full bg-orange-50 py-4 px-4 md:px-6 flex items-center justify-between shadow-sm">
       {/* App Name */}
       <span className="text-xl md:text-2xl font-extrabold text-orange-600 whitespace-nowrap">
-        Hotpot🔥
+       🍲 Hotpot 
       </span>
 
       {/* Search (hidden on mobile) */}

@@ -2,21 +2,95 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
-  <!-- Google Fonts: Inter & Montserrat -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet" />
+    <title>Order Food & Discover the Best Restaurants Near You</title>
+
+    <!-- Default favicon (first frame) -->
+    <link type="image/png" rel="icon" href="C:\Users\tarun\OneDrive\Desktop\hotpot\frontend\public\haha.png" />
+
+    <!-- Google Fonts -->
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Outfit:wght@100..900&family=Questrial&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>
-  <script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUWhyzmspBpNj7WOl5y6n2660kkLsOxU8&libraries=marker,places"
-    async
-    defer
+
+    <!-- Google Maps API -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUWhyzmspBpNj7WOl5y6n2660kkLsOxU8&libraries=marker,places"
+      async
+      defer
     ></script>
     <script src="https://unpkg.com/@googlemaps/js-api-loader@1.x/dist/index.min.js"></script>
     <script type="module" src="/src/main.jsx"></script>
 
+    <!-- Modern Interactive Favicon Script -->
+    <script>
+      const favicon = document.querySelector("link[rel='icon']") || document.createElement("link");
+      favicon.rel = "icon";
+      document.head.appendChild(favicon);
+
+      let frame = 0;
+      let hover = false;
+
+      // Listen for mouseover/mouseout on the document
+      document.addEventListener('mouseover', () => { hover = true; });
+      document.addEventListener('mouseout', () => { hover = false; });
+
+      function drawFavicon() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext("2d");
+
+        // Modern gradient background
+        const grad = ctx.createLinearGradient(0, 0, 64, 64);
+        grad.addColorStop(0, hover ? "#ff9800" : "#ff6600");
+        grad.addColorStop(1, hover ? "#ffcc80" : "#ffb74d");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(32, 32, 32, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hotpot emoji with drop shadow
+        ctx.save();
+        ctx.shadowColor = hover ? "#fff176" : "#ff5722";
+        ctx.shadowBlur = hover ? 12 : 6;
+        ctx.font = "32px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("🍲", 32, 28);
+        ctx.restore();
+
+        // Interactive flames (flicker and color change on hover)
+        ctx.save();
+        ctx.font = "28px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.globalAlpha = hover ? 1 : 0.8;
+        ctx.fillStyle = hover ? "#ffeb3b" : "#ff9800";
+        const flame = frame % 2 === 0 ? "🔥" : "🍔";
+        ctx.fillText(flame, 32, 50);
+        ctx.restore();
+
+        // Modern ring border
+        ctx.save();
+        ctx.lineWidth = hover ? 4 : 2;
+        ctx.strokeStyle = hover ? "#fffde7" : "#ff9800";
+        ctx.beginPath();
+        ctx.arc(32, 32, 30, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Update favicon
+        favicon.href = canvas.toDataURL("image/png");
+        frame++;
+      }
+
+      setInterval(drawFavicon, 500);
+      drawFavicon();
+    </script>
+    <!-- End Modern Interactive Favicon Script -->
   </body>
 </html>

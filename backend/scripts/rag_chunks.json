@@ -1,0 +1,32 @@
+[
+  {
+    "id": "shop-68d1bd7c44e440369d13f002",
+    "type": "shop",
+    "text": "Shop: lotpot\nLocation: Bhopal, Madhya Pradesh\nAddress: Neem road, Ibrahimpura, Bhopal - 462001, MP, India\nPhone: N/A"
+  },
+  {
+    "id": "shop-68d1fa2a372bd947148b9e82",
+    "type": "shop",
+    "text": "Shop: Roms\nLocation: Uttar Pradesh, Uttar Pradesh\nAddress: Muradnagar, Meerut Road(NH 58), - 201206, UP, India\nPhone: N/A"
+  },
+  {
+    "id": "shop-68d65a1cf09ea7b2239fb876",
+    "type": "shop",
+    "text": "Shop: Hhh\nLocation: Tgg, Ghg\nAddress: Hhg\nPhone: N/A"
+  },
+  {
+    "id": "item-68d1ee8f372bd947148b97e4",
+    "type": "item",
+    "text": "Item: Tarun \nCategory: main course\nPrice: ₹90\nType: veg\nShop: lotpot\nShop Location: Bhopal"
+  },
+  {
+    "id": "item-68d1fa75372bd947148b9e89",
+    "type": "item",
+    "text": "Item: Pizza\nCategory: pizza\nPrice: ₹100\nType: veg\nShop: Roms\nShop Location: Uttar Pradesh"
+  },
+  {
+    "id": "item-68d65a4cf09ea7b2239fb87c",
+    "type": "item",
+    "text": "Item: Vvv\nCategory: north indian\nPrice: ₹99\nType: veg\nShop: Hhh\nShop Location: Tgg"
+  }
+]

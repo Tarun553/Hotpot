@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { embedAndUpsert } from "../utils/ai.js";
 
 const itemSchema = new mongoose.Schema(
   {
@@ -40,6 +41,18 @@ const itemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Item = mongoose.model("Item", itemSchema);
+// Auto-embed after saving a new item
+itemSchema.post("save", async function (doc) {
+  await embedAndUpsert({
+    id: `item-${doc._id}`,
+    type: "item",
+    text: `Item: ${doc.name}
+Category: ${doc.category}
+Price: ₹${doc.price}
+Type: ${doc.foodType}
+Shop: ${doc.shop?.name || "N/A"}
+Shop Location: ${doc.shop?.city || "N/A"}`,
+  });
+});
 
-export default Item;
+export default mongoose.model("Item", itemSchema);

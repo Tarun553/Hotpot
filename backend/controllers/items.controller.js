@@ -198,3 +198,13 @@ export const getItemByCategory = async (req, res) => {
         res.status(500).json({ message: "get item by category error", error: error.message });
     }
 };
+
+
+export const getAllItems = async (req, res) => {
+  try {
+    const items = await Item.find(); // Adjust model name if needed
+    res.status(200).json({ items });
+  } catch (error) {
+    res.status(500).json({ message: "get all items error", error: error.message });
+  }
+};

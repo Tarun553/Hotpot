@@ -11,7 +11,15 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^1.21.0",
     "@googlemaps/js-api-loader": "^1.16.10",
+    "@langchain/community": "^0.3.57",
+    "@langchain/core": "^0.3.78",
+    "@langchain/google-genai": "^0.2.18",
+    "@langchain/pinecone": "^0.2.0",
+    "@langchain/textsplitters": "^0.1.0",
+    "@pinecone-database/pinecone": "^6.1.2",
+    "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.7",
@@ -22,6 +30,7 @@
     "mongoose": "^8.18.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.6",
+    "readline-sync": "^1.4.10",
     "socket.io": "^4.8.1",
     "twilio": "^5.10.0"
   }

@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser";
 import cartRouter from "./routes/cart.route.js";
 import orderRouter from "./routes/order.route.js";
 import deliveryRouter from "./routes/delivery.route.js";
+import chatRouter from "./routes/chat.route.js";
 import User from "./models/user.model.js";
 
 
@@ -54,6 +55,9 @@ app.use("/api/items", itemRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/delivery", deliveryRouter);
+app.use("/api/chat", chatRouter);
+console.log("✅ Chat route registered at /api/chat");
+
 // health check route
 app.get("/", (req, res) => {
   res.send("Hello World!");

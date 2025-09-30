@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { embedAndUpsert } from "../utils/ai.js";
 
 const shopSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -7,10 +8,20 @@ const shopSchema = new mongoose.Schema({
   city: { type: String, required: true },
   state: { type: String, required: true },
   address: { type: String, required: true },
-  phone: { type: String},
+  phone: { type: String },
   items: [{ type: mongoose.Schema.Types.ObjectId, ref: "Item" }],
 });
 
-const Shop = mongoose.model("Shop", shopSchema);
+// Auto-embed after saving a new shop
+shopSchema.post("save", async function (doc) {
+  await embedAndUpsert({
+    id: `shop-${doc._id}`,
+    type: "shop",
+    text: `Shop: ${doc.name}
+Location: ${doc.city}, ${doc.state}
+Address: ${doc.address}
+Phone: ${doc.phone || "N/A"}`,
+  });
+});
 
-export default Shop;
+export default mongoose.model("Shop", shopSchema);

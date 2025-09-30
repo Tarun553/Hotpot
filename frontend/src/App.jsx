@@ -15,6 +15,8 @@ import useGetMyOrders from "./hooks/useGetMyOrders";
 import useShopOrders from "./hooks/useShopOrders";
 import useUpdateLocation from "./hooks/useUpdateLocation";
 
+import ChatBotPage from "./pages/ChatBot";
+
 // Lazy load components for code splitting
 const Login = React.lazy(() => import("./pages/Login"));
 const Register = React.lazy(() => import("./pages/Register"));
@@ -171,6 +173,14 @@ const App = () => {
                   <EditItemOwner />
                 </ProtectedRoute>
               } 
+            />
+            <Route
+            path="/chat"
+              element={
+                <ProtectedRoute>
+                  <ChatBotPage />
+                </ProtectedRoute>
+              }
             />
 
             {/* Delivery boy routes */}

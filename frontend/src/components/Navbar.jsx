@@ -192,13 +192,6 @@ const Navbar = () => {
         {/* Cart + My Orders */}
         <div className="flex items-center gap-2 cursor-pointer">
           <Button
-            onClick={() => navigate("/chat")}
-            className="bg-transparent hover:bg-orange-100 mr-2"
-            title="AI Assistant"
-          >
-            <span className="text-orange-600 text-lg">🤖</span>
-          </Button>
-          <Button
             onClick={() => navigate("/cart")}
             className="bg-transparent hover:bg-orange-100"
           >
@@ -255,12 +248,6 @@ const Navbar = () => {
               </SheetTitle>
             </SheetHeader>
             <div className="mt-6 flex flex-col gap-4">
-              <Button
-                onClick={() => navigate("/chat")}
-                className="w-full justify-start bg-orange-50 text-orange-700 hover:bg-orange-100"
-              >
-                🤖 AI Assistant
-              </Button>
               <Button
                 onClick={() => navigate("/cart")}
                 className="w-full justify-start bg-orange-50 text-orange-700 hover:bg-orange-100"

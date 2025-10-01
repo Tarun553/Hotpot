@@ -1,11 +1,12 @@
 import React, { Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingSpinner from "./components/LoadingSpinner";
 import OfflineIndicator from "./components/OfflineIndicator";
 import AppInitializer from "./components/AppInitializer";
+import FloatingChatWidget from "./components/FloatingChatWidget";
 import useGetCurrentUser from "./hooks/useGetCurrentUser";
 import useGetCity from "./hooks/useGetCity";
 import useGetMyShop from "./hooks/useGetMyShop";
@@ -39,24 +40,15 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 // Access the server URL from environment variables
 export const serverUrl = import.meta.env.VITE_SERVER_URL;
 
-const App = () => {
-  // Initialize hooks
-  useGetCurrentUser();
-  useGetCity();
-  useGetMyShop();
-  useGetAllShops();
-  useGetShopByCity();
-  useGetMyOrders();
-  useShopOrders();
-  useUpdateLocation();
+// Wrapper component to handle floating chat widget
+const AppWithRoutes = () => {
+  const location = useLocation();
+  const showFloatingChat = location.pathname !== '/chat';
 
   return (
-    <ErrorBoundary>
-      <AppInitializer>
-        <OfflineIndicator />
-        <BrowserRouter>
-          <Suspense fallback={<LoadingSpinner fullScreen />}>
-            <Routes>
+    <>
+      <Suspense fallback={<LoadingSpinner fullScreen />}>
+        <Routes>
             {/* Public routes */}
             <Route 
               path="/login" 
@@ -206,7 +198,31 @@ const App = () => {
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>
         </Suspense>
-      </BrowserRouter>
+        
+        {/* Global Floating Chat Widget - hide on chat page */}
+        {showFloatingChat && <FloatingChatWidget />}
+      </>
+  );
+};
+
+const App = () => {
+  // Initialize hooks
+  useGetCurrentUser();
+  useGetCity();
+  useGetMyShop();
+  useGetAllShops();
+  useGetShopByCity();
+  useGetMyOrders();
+  useShopOrders();
+  useUpdateLocation();
+
+  return (
+    <ErrorBoundary>
+      <AppInitializer>
+        <OfflineIndicator />
+        <BrowserRouter>
+          <AppWithRoutes />
+        </BrowserRouter>
       </AppInitializer>
     </ErrorBoundary>
   );

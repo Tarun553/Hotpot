@@ -1,0 +1,78 @@
+[
+  {
+    "id": "shop-68d1bd7c44e440369d13f002",
+    "type": "shop",
+    "shopId": "68d1bd7c44e440369d13f002",
+    "shopName": "lotpot",
+    "city": "Bhopal",
+    "state": "Madhya Pradesh",
+    "text": "Restaurant: lotpot\nLocation: Bhopal, Madhya Pradesh\nFull Address: Neem road, Ibrahimpura, Bhopal - 462001, MP, India\nContact: Contact not available\nRestaurant Type: Restaurant\nDescription: This is lotpot, a popular restaurant located in Bhopal. \nYou can find them at Neem road, Ibrahimpura, Bhopal - 462001, MP, India. \nThey serve various food items and are available for delivery through Hotpot app."
+  },
+  {
+    "id": "shop-68d1fa2a372bd947148b9e82",
+    "type": "shop",
+    "shopId": "68d1fa2a372bd947148b9e82",
+    "shopName": "Roms",
+    "city": "Uttar Pradesh",
+    "state": "Uttar Pradesh",
+    "text": "Restaurant: Roms\nLocation: Uttar Pradesh, Uttar Pradesh\nFull Address: Muradnagar, Meerut Road(NH 58), - 201206, UP, India\nContact: Contact not available\nRestaurant Type: Restaurant\nDescription: This is Roms, a popular restaurant located in Uttar Pradesh. \nYou can find them at Muradnagar, Meerut Road(NH 58), - 201206, UP, India. \nThey serve various food items and are available for delivery through Hotpot app."
+  },
+  {
+    "id": "shop-68d65a1cf09ea7b2239fb876",
+    "type": "shop",
+    "shopId": "68d65a1cf09ea7b2239fb876",
+    "shopName": "Hhh",
+    "city": "Tgg",
+    "state": "Ghg",
+    "text": "Restaurant: Hhh\nLocation: Tgg, Ghg\nFull Address: Hhg\nContact: Contact not available\nRestaurant Type: Restaurant\nDescription: This is Hhh, a popular restaurant located in Tgg. \nYou can find them at Hhg. \nThey serve various food items and are available for delivery through Hotpot app."
+  },
+  {
+    "id": "item-68d1ee8f372bd947148b97e4",
+    "type": "item",
+    "itemId": "68d1ee8f372bd947148b97e4",
+    "itemName": "Tarun ",
+    "category": "main course",
+    "price": 90,
+    "foodType": "veg",
+    "shopId": "68d1bd7c44e440369d13f002",
+    "shopName": "lotpot",
+    "city": "Bhopal",
+    "text": "Food Item: Tarun \nCategory: main course\nPrice: ₹90\nFood Type: veg (Vegetarian)\nAvailable at: lotpot\nRestaurant Location: Bhopal, Madhya Pradesh\nDescription: Tarun  is a delicious veg main course item priced at ₹90. \nYou can order this from lotpot located in Bhopal.\nThis is a great choice for vegetarian food lovers."
+  },
+  {
+    "id": "item-68d1fa75372bd947148b9e89",
+    "type": "item",
+    "itemId": "68d1fa75372bd947148b9e89",
+    "itemName": "Pizza",
+    "category": "pizza",
+    "price": 100,
+    "foodType": "veg",
+    "shopId": "68d1fa2a372bd947148b9e82",
+    "shopName": "Roms",
+    "city": "Uttar Pradesh",
+    "text": "Food Item: Pizza\nCategory: pizza\nPrice: ₹100\nFood Type: veg (Vegetarian)\nAvailable at: Roms\nRestaurant Location: Uttar Pradesh, Uttar Pradesh\nDescription: Pizza is a delicious veg pizza item priced at ₹100. \nYou can order this from Roms located in Uttar Pradesh.\nThis is a great choice for vegetarian food lovers."
+  },
+  {
+    "id": "item-68d65a4cf09ea7b2239fb87c",
+    "type": "item",
+    "itemId": "68d65a4cf09ea7b2239fb87c",
+    "itemName": "Vvv",
+    "category": "north indian",
+    "price": 99,
+    "foodType": "veg",
+    "shopId": "68d65a1cf09ea7b2239fb876",
+    "shopName": "Hhh",
+    "city": "Tgg",
+    "text": "Food Item: Vvv\nCategory: north indian\nPrice: ₹99\nFood Type: veg (Vegetarian)\nAvailable at: Hhh\nRestaurant Location: Tgg, Ghg\nDescription: Vvv is a delicious veg north indian item priced at ₹99. \nYou can order this from Hhh located in Tgg.\nThis is a great choice for vegetarian food lovers."
+  },
+  {
+    "id": "app-info-1",
+    "type": "app_info",
+    "text": "Hotpot Food Delivery App Information:\nHotpot is a comprehensive food delivery platform that connects customers, restaurant owners, and delivery partners.\nFeatures include:\n- Browse restaurants by location and category\n- Real-time order tracking\n- Multiple payment options\n- Ratings and reviews system\n- Quick delivery service\n- User-friendly interface for ordering food"
+  },
+  {
+    "id": "app-info-2",
+    "type": "app_info",
+    "text": "How to use Hotpot:\n1. Browse restaurants in your city\n2. Select items from restaurant menus\n3. Add items to your cart\n4. Proceed to checkout and payment\n5. Track your order in real-time\n6. Enjoy your food delivered to your doorstep\n\nHotpot serves multiple cities and offers a wide variety of cuisines including vegetarian and non-vegetarian options."
+  }
+]
